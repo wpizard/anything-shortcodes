@@ -1,0 +1,51 @@
+{
+    "name": "rac-0",
+    "version": "1.0.0",
+    "postcss": {
+        "plugins": {
+            "postcss-nested": {},
+            "autoprefixer": {}
+        }
+    },
+    "babel": {
+        "presets": [
+            "@babel/preset-env"
+        ],
+        "plugins": []
+    },
+    "watch": {
+        "build:css": {
+            "patterns": ["assets/css"],
+            "extensions": ["css"]
+        },
+        "build:js": {
+            "patterns": ["assets/js"],
+            "extensions": ["js"]
+        }
+    },
+    "scripts": {
+        "clean": "rimraf assets/dist rac-0 rac-0.zip",
+        "pot": "wp-pot --domain 'rac-0' --package 'RAC_0' --dest-file 'languages/rac-0.pot' --src '**/*.php'",
+        "build:css": "postcss assets/css/**/[!_]*.css --dir assets/dist/css",
+        "build:js": "babel assets/js/**/[!_]*.js -d assets/dist/js",
+        "build": "npm run clean && npm run build:css && npm run build:js",
+        "watch": "npm-watch",
+        "copy": "copyfiles 'languages/*' 'assets/dist/**/*' 'assets/lib/**/*' 'includes/**/*' 'vendor/**/*' rac-0.php readme.txt rac-0",
+        "zip": "zip-build --build-dir 'rac-0' --zip-dir '.' --template '%NAME%.%EXT%'",
+        "release": "npm run build && npm run copy"
+    },
+    "devDependencies": {
+        "@babel/cli": "^7.12.10",
+        "@babel/core": "^7.12.10",
+        "@babel/preset-env": "^7.12.11",
+        "autoprefixer": "^10.1.0",
+        "copyfiles": "^2.4.1",
+        "npm-watch": "^0.7.0",
+        "postcss": "^8.2.4",
+        "postcss-cli": "^8.3.1",
+        "postcss-nested": "^5.0.3",
+        "rimraf": "^3.0.2",
+        "wp-pot-cli": "^1.5.0",
+        "zip-build": "^1.4.0"
+    }
+}

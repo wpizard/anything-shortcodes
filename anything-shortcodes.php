@@ -225,7 +225,7 @@ final class Plugin {
      *
      * @since 1.0.0
      */
-    public function load_files( $file_names = array() ) {
+    public function load_files( $file_names = [], $base = false, $attributes = [] ) {
         foreach ( $file_names as $file_name ) {
             $this->load_file( $file_name );
         }
@@ -236,11 +236,12 @@ final class Plugin {
      *
      * @since 1.0.0
      */
-    public function load_file( $file_name = '', $base = false ) {
-        $base = empty( $base ) ? 'includes/' : '/';
+    public function load_file( $file_name = '', $base = false, $attributes = [] ) {
+        $base       = empty( $base ) ? 'includes/' : '/';
+        $attributes = $attributes;
 
         if ( file_exists( $path = $this->plugin_dir() . $base . $file_name . '.php' ) ) {
-            require_once $path;
+            require_once( $path );
         }
     }
 }

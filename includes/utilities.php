@@ -1,6 +1,6 @@
 <?php
 
-namespace RAC_0;
+namespace Anything_Shortcodes;
 
 defined( 'ABSPATH' ) or die();
 
@@ -46,7 +46,7 @@ final class Utilities {
         } elseif ( function_exists( 'openssl_random_pseudo_bytes' ) ) {
             $bytes = openssl_random_pseudo_bytes( ceil( $lenght / 2 ) );
         } else {
-            throw new Exception( esc_html__( 'No cryptographically secure random function available.', 'rac-0' ) );
+            throw new Exception( esc_html__( 'No cryptographically secure random function available.', 'anything-shortcodes' ) );
         }
 
         return substr( bin2hex( $bytes ), 0, $lenght );

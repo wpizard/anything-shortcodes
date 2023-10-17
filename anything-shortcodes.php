@@ -1,14 +1,15 @@
 <?php
 /**
- * Plugin Name: (RAC 0)
- * Plugin URI: https://github.com/rac-projects/rac-0
- * Description: Explanation.
+ * Plugin Name: Anything Shortcodes
+ * Plugin URI: https://wordpress.org/plugins/anything-shortcodes
+ * Description: Ready-to-use shortcodes for accessing any data in WordPress.
  * Version: 1.0.0
- * Author: Reza A.
- * Text Domain: rac-0
+ * Author: WPizard
+ * Author URI: https://wpizard.com/
+ * Text Domain: anything-shortcodes
  */
 
-namespace RAC_0;
+namespace Anything_Shortcodes;
 
 defined( 'ABSPATH' ) or die();
 
@@ -114,7 +115,7 @@ final class Plugin {
      * @since 1.0.0
      */
     protected function define_constants() {
-        $plugin_data = get_file_data( __FILE__, [ 'Plugin Name', 'Version' ], 'rac-0' );
+        $plugin_data = get_file_data( __FILE__, [ 'Plugin Name', 'Version' ], 'anything-shortcodes' );
 
         self::$plugin_basename = plugin_basename( __FILE__ );
         self::$plugin_name     = array_shift( $plugin_data );
@@ -139,14 +140,14 @@ final class Plugin {
      * @since 1.0.0
      */
     public function init() {
-        load_plugin_textdomain( 'rac-0', false, $this->plugin_dir() . '/languages' );
+        load_plugin_textdomain( 'anything-shortcodes', false, $this->plugin_dir() . '/languages' );
 
         $this->load_files( [
             'utilities',
             'empty',
         ] );
 
-        do_action( 'rac-0/init', $this );
+        do_action( 'anything-shortcodes/init', $this );
     }
 
     /**
@@ -249,9 +250,9 @@ final class Plugin {
  *
  * @since 1.0.0
  *
- * @return RAC_0
+ * @return Anything_Shortcodes
  */
-function rac_0() {
+function anything_shortcodes() {
     return Plugin::get_instance();
 }
 
@@ -260,4 +261,4 @@ function rac_0() {
  *
  * @since 1.0.0
  */
-rac_0();
+anything_shortcodes();

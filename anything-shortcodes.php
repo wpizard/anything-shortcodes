@@ -104,7 +104,7 @@ final class Plugin {
      * @since 1.0.0
      */
     private function safe_mode() {
-        $safe_mode = filter_input( INPUT_GET, 'rac_safe_mode', FILTER_SANITIZE_SPECIAL_CHARS );
+        $safe_mode = filter_input( INPUT_GET, 'anything_shortcodes_safe_mode', FILTER_SANITIZE_SPECIAL_CHARS );
 
         return boolval( $safe_mode );
     }

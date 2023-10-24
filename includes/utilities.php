@@ -34,6 +34,144 @@ final class Utilities {
     }
 
     /**
+     * Get attributes.
+     *
+     * @since 1.0.0
+     */
+    public static function get_attributes( $attributes ) {
+        $attributes            = array_map( 'trim', $attributes );
+        $attributes['post_id'] = empty( $attributes['post_id'] ) ? get_the_ID() : $attributes['post_id'];
+
+        foreach ( $attributes as $attribute_key => $attribute ) {
+            if ( 'output' === $attribute_key ) {
+                continue;
+            }
+
+            // Shortcode.
+            if ( str_contains( $attribute, 'sc:' ) ) {
+                $attributes[ $attribute_key ] = self::call_attribute_shortcode( $attributes, $attribute_key, $attribute );
+                continue;
+            }
+
+            // Function.
+            if ( str_contains( $attribute, 'fn:' ) ) {
+                $attributes[ $attribute_key ] = self::call_attribute_function( $attributes, $attribute_key, $attribute );
+                continue;
+            }
+        }
+
+        return $attributes;
+    }
+
+    /**
+     * Get Output.
+     *
+     * @since 1.0.0
+     */
+    public static function get_output( $attributes, $value ) {
+        if ( empty( $attributes['output'] ) ) {
+            return;
+        }
+
+        $attributes['value'] = $value;
+        $output              = '';
+
+        // HTML.
+        if ( str_contains( $attributes['output'], 'html:' ) ) {
+            $attributes['output'] = str_replace( 'html:', '', $attributes['output'] );
+            $attributes['output'] = ltrim( $attributes['output'], "</p>" );
+            $attributes['output'] = rtrim( $attributes['output'], "<p>" );
+
+            $output = str_replace( '$value', $value, $attributes['output'] );
+        }
+
+        // Shortcode.
+        if ( str_contains( $attributes['output'], 'sc:' ) ) {
+            $output = self::call_attribute_shortcode( $attributes, 'output', $attributes['output'] );
+        }
+
+        // Function.
+        if ( str_contains( $attributes['output'], 'fn:' ) ) {
+            $output = self::call_attribute_function( $attributes, 'output', $attributes['output'] );
+        }
+
+        return $output;
+    }
+
+    /**
+     * Call shortcode in attributes/output.
+     *
+     * @since 1.0.0
+     */
+    public static function call_attribute_shortcode( $attributes, $attribute_key, $attribute ) {
+        $shortcode            = str_replace( 'sc:', '', $attribute );
+        $shortcode_attributes = '';
+
+        /**
+         * Filters the content of the a shortcode.
+         *
+         * The dynamic portion of the hook name, `$attributes['name']`, refers to
+         * the shortcode name.
+         *
+         * Possible hook names include:
+         *
+         *  - `anything-shortcodes/shortcodes/post-field/content`
+         *  - `anything-shortcodes/shortcodes/post-custom-fields/content`
+         *
+         * @since 1.0.0
+         *
+         * @param string $content    Shortcode content.
+         * @param array  $attributes Shortcode attributes.
+         */
+        $attributes = apply_filters(
+            "anything-shortcodes/shortcodes/{$attributes['name']}/attributes/{$attribute_key}/shortcode",
+            $attributes
+        );
+
+        foreach ( $attributes as $key => $value ) {
+            $shortcode_attributes .= "$key='$value' ";
+        }
+
+        return do_shortcode( "[{$shortcode} $shortcode_attributes]" );
+    }
+
+    /**
+     * Call function in attributes/output.
+     *
+     * @since 1.0.0
+     */
+    public static function call_attribute_function( $attributes, $attribute_key, $attribute ) {
+        $function = str_replace( 'fn:', '', $attribute );
+
+        if ( ! is_callable( $function ) ) {
+            return;
+        }
+
+        /**
+         * Filters the content of the a shortcode.
+         *
+         * The dynamic portion of the hook name, `$attributes['name']`, refers to
+         * the shortcode name.
+         *
+         * Possible hook names include:
+         *
+         *  - `anything-shortcodes/shortcodes/post-field/content`
+         *  - `anything-shortcodes/shortcodes/post-custom-fields/content`
+         *
+         * @since 1.0.0
+         *
+         * @param string $content    Shortcode content.
+         * @param array  $attributes Shortcode attributes.
+         */
+        $function_attributes = apply_filters(
+            "anything-shortcodes/shortcodes/{$attributes['name']}/attributes/{$attribute_key}/function",
+            $attributes
+        );
+
+        return call_user_func_array( $function, [ $function_attributes ] );
+    }
+
+    /**
      * Generates a real uniqid.
      *
      * https://www.php.net/manual/en/function.uniqid.php

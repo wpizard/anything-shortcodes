@@ -144,7 +144,7 @@ final class Plugin {
 
         $this->load_files( [
             'utilities',
-            'empty',
+            'shortcodes/register',
         ] );
 
         do_action( 'anything-shortcodes/init', $this );

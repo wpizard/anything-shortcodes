@@ -1,6 +1,6 @@
 <?php
 
-namespace Anything_Shortcodes\Shortcodes;
+namespace AnyS\Shortcodes;
 
 defined( 'ABSPATH' ) or die();
 
@@ -46,8 +46,6 @@ final class Register {
      * @since 1.0.0
      */
     private function __construct() {
-        $this->plugin = \Anything_Shortcodes\anything_shortcodes();
-
         $this->add_hooks();
     }
 
@@ -66,7 +64,7 @@ final class Register {
      * @since 1.0.0
      */
     public function register_shortcodes() {
-        add_shortcode( 'anything-shortcodes', [ $this, 'render_shortcode' ] );
+        add_shortcode( 'anys', [ $this, 'render_shortcode' ] );
     }
 
     /**
@@ -88,7 +86,7 @@ final class Register {
          * @param string $content    Shortcode content.
          */
         $attributes = apply_filters(
-            'anything-shortcodes/shortcodes/attributes',
+            'anys/shortcodes/attributes',
             $attributes,
             $content
         );
@@ -101,8 +99,8 @@ final class Register {
          *
          * Possible hook names include:
          *
-         *  - `anything-shortcodes/shortcodes/post-field/attributes`
-         *  - `anything-shortcodes/shortcodes/post-custom-fields/attributes`
+         *  - `anys/shortcodes/post-field/attributes`
+         *  - `anys/shortcodes/post-custom-fields/attributes`
          *
          * @since 1.0.0
          *
@@ -110,7 +108,7 @@ final class Register {
          * @param string $content    Shortcode content.
          */
         $attributes = apply_filters(
-            "anything-shortcodes/shortcodes/{$attributes['name']}/attributes",
+            "anys/shortcodes/{$attributes['name']}/attributes",
             $attributes,
             $content
         );
@@ -124,7 +122,7 @@ final class Register {
          * @param array  $attributes Shortcode attributes.
          */
         $content = apply_filters(
-            'anything-shortcodes/shortcodes/content',
+            'anys/shortcodes/content',
             $content,
             $attributes
         );
@@ -137,8 +135,8 @@ final class Register {
          *
          * Possible hook names include:
          *
-         *  - `anything-shortcodes/shortcodes/post-field/content`
-         *  - `anything-shortcodes/shortcodes/post-custom-fields/content`
+         *  - `anys/shortcodes/post-field/content`
+         *  - `anys/shortcodes/post-custom-fields/content`
          *
          * @since 1.0.0
          *
@@ -146,7 +144,7 @@ final class Register {
          * @param array  $attributes Shortcode attributes.
          */
         $content = apply_filters(
-            "anything-shortcodes/shortcodes/{$attributes['name']}/content",
+            "anys/shortcodes/{$attributes['name']}/content",
             $content,
             $attributes
         );
@@ -167,7 +165,7 @@ final class Register {
          * @param array  $attributes Shortcode attributes.
          */
         do_action(
-            "anything-shortcodes/shortcodes/output/before",
+            "anys/shortcodes/output/before",
             $attributes,
             $content
         );
@@ -180,8 +178,8 @@ final class Register {
          *
          * Possible hook names include:
          *
-         *  - `anything-shortcodes/shortcodes/post-field/output/before`
-         *  - `anything-shortcodes/shortcodes/post-custom-fields/output/before`
+         *  - `anys/shortcodes/post-field/output/before`
+         *  - `anys/shortcodes/post-custom-fields/output/before`
          *
          * @since 1.0.0
          *
@@ -189,12 +187,12 @@ final class Register {
          * @param array  $attributes Shortcode attributes.
          */
         do_action(
-            "anything-shortcodes/shortcodes/{$attributes['name']}/output/before",
+            "anys/shortcodes/{$attributes['name']}/output/before",
             $attributes,
             $content
         );
 
-        require $this->plugin->plugin_dir() . "includes/shortcodes/{$attributes['name']}.php" ;
+        require ANYS_INCLUDES_PATH . "shortcodes/{$attributes['name']}.php";
 
         /**
          * Fires after the output of the shortcodes.
@@ -205,7 +203,7 @@ final class Register {
          * @param array  $attributes Shortcode attributes.
          */
         do_action(
-            "anything-shortcodes/shortcodes/output/after",
+            "anys/shortcodes/output/after",
             $attributes,
             $content
         );
@@ -218,8 +216,8 @@ final class Register {
          *
          * Possible hook names include:
          *
-         *  - `anything-shortcodes/shortcodes/post-field/output/after`
-         *  - `anything-shortcodes/shortcodes/post-custom-fields/output/after`
+         *  - `anys/shortcodes/post-field/output/after`
+         *  - `anys/shortcodes/post-custom-fields/output/after`
          *
          * @since 1.0.0
          *
@@ -227,7 +225,7 @@ final class Register {
          * @param array  $attributes Shortcode attributes.
          */
         do_action(
-            "anything-shortcodes/shortcodes/{$attributes['name']}/output/after",
+            "anys/shortcodes/{$attributes['name']}/output/after",
             $attributes,
             $content
         );
@@ -244,7 +242,7 @@ final class Register {
          * @param string $content    Shortcode content.
          */
         $output = apply_filters(
-            "anything-shortcodes/shortcodes/output",
+            "anys/shortcodes/output",
             $output,
             $attributes,
             $content
@@ -258,8 +256,8 @@ final class Register {
          *
          * Possible hook names include:
          *
-         *  - `anything-shortcodes/shortcodes/post-field/output`
-         *  - `anything-shortcodes/shortcodes/post-custom-fields/output`
+         *  - `anys/shortcodes/post-field/output`
+         *  - `anys/shortcodes/post-custom-fields/output`
          *
          * @since 1.0.0
          *
@@ -268,7 +266,7 @@ final class Register {
          * @param string $content    Shortcode content.
          */
         $output = apply_filters(
-            "anything-shortcodes/shortcodes/{$attributes['name']}/output",
+            "anys/shortcodes/{$attributes['name']}/output",
             $output,
             $attributes,
             $content

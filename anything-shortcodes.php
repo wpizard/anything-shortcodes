@@ -6,15 +6,17 @@
  * Version: 1.0.0
  * Author: WPizard
  * Author URI: https://wpizard.com/
- * Text Domain: anything-shortcodes
+ * Text Domain: anys
+ * License: GPL v2 or later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  */
 
-namespace Anything_Shortcodes;
+namespace AnyS;
 
 defined( 'ABSPATH' ) or die();
 
 /**
- * RAC class.
+ * Anything Shortcodes class.
  *
  * @since 1.0.0
  */
@@ -26,48 +28,6 @@ final class Plugin {
      * @since 1.0.0
      */
     private static $instance;
-
-    /**
-     * Plugin version.
-     *
-     * @since 1.0.0
-     */
-    private static $plugin_version;
-
-    /**
-     * Plugin basename.
-     *
-     * @since 1.0.0
-     */
-    private static $plugin_basename;
-
-    /**
-     * Plugin name.
-     *
-     * @since 1.0.0
-     */
-    private static $plugin_name;
-
-    /**
-     * Plugin slug.
-     *
-     * @since 1.0.0
-     */
-    private static $plugin_slug;
-
-    /**
-     * Plugin directory.
-     *
-     * @since 1.0.0
-     */
-    private static $plugin_dir;
-
-    /**
-     * Plugin url.
-     *
-     * @since 1.0.0
-     */
-    private static $plugin_url;
 
     /**
      * Returns the instance.
@@ -104,7 +64,7 @@ final class Plugin {
      * @since 1.0.0
      */
     private function safe_mode() {
-        $safe_mode = filter_input( INPUT_GET, 'anything_shortcodes_safe_mode', FILTER_SANITIZE_SPECIAL_CHARS );
+        $safe_mode = filter_input( INPUT_GET, 'anys_safe_mode', FILTER_SANITIZE_SPECIAL_CHARS );
 
         return boolval( $safe_mode );
     }
@@ -115,14 +75,22 @@ final class Plugin {
      * @since 1.0.0
      */
     protected function define_constants() {
-        $plugin_data = get_file_data( __FILE__, [ 'Plugin Name', 'Version' ], 'anything-shortcodes' );
+        define( 'ANYS_NAME', esc_html__( 'Anything Shortcodes', 'anys' ) );
+        define( 'ANYS_SLUG', 'anys' );
+        define( 'ANYS_VERSION', '1.0.0' );
 
-        self::$plugin_basename = plugin_basename( __FILE__ );
-        self::$plugin_name     = array_shift( $plugin_data );
-        self::$plugin_slug     = strtolower( self::$plugin_name );
-        self::$plugin_version  = array_shift( $plugin_data );
-        self::$plugin_dir      = trailingslashit( plugin_dir_path( __FILE__ ) );
-        self::$plugin_url      = trailingslashit( plugin_dir_url( __FILE__ ) );
+        define( 'ANYS_PATH', wp_normalize_path( trailingslashit( plugin_dir_path( __FILE__ ) ) ) );
+        define( 'ANYS_INCLUDES_PATH', ANYS_PATH . 'includes/' );
+        define( 'ANYS_MODULES_PATH', ANYS_PATH . 'includes/modules/' );
+        define( 'ANYS_ASSETS_PATH', ANYS_PATH . 'assets/' );
+
+        define( 'ANYS_URL', wp_normalize_path( trailingslashit( plugin_dir_url( __FILE__ ) ) ) );
+        define( 'ANYS_INCLUDES_URL', ANYS_URL . 'includes/' );
+        define( 'ANYS_MODULES_URL', ANYS_URL . 'includes/modules/' );
+        define( 'ANYS_ASSETS_URL', ANYS_URL . 'assets/' );
+        define( 'ANYS_CSS_URL', ANYS_ASSETS_URL . 'css/' );
+        define( 'ANYS_JS_URL', ANYS_ASSETS_URL . 'js/' );
+        define( 'ANYS_IMAGES_URL', ANYS_ASSETS_URL . 'images/' );
     }
 
     /**
@@ -132,6 +100,8 @@ final class Plugin {
      */
     protected function add_hooks() {
         add_action( 'plugins_loaded', [ $this, 'init' ] );
+        add_action( 'anys/init', [ $this, 'load_textdomain' ] );
+        add_action( 'anys/init', [ $this, 'load_dependencies' ] );
     }
 
     /**
@@ -140,121 +110,47 @@ final class Plugin {
      * @since 1.0.0
      */
     public function init() {
-        load_plugin_textdomain( 'anything-shortcodes', false, $this->plugin_dir() . '/languages' );
 
-        $this->load_files( [
-            'utilities',
-            'shortcodes/register',
-        ] );
+        /**
+         * Fires before Beans loads.
+         *
+         * @since 1.0.0
+         */
+        do_action( 'anys/init/before' );
 
-        do_action( 'anything-shortcodes/init', $this );
+        /**
+         * Loads Anything Shortcodes .
+         *
+         * @since 1.0.0
+         */
+        do_action( 'anys/init' );
+
+        /**
+        * Fires after Beans loads.
+        *
+        * @since 1.0.0
+        */
+        do_action( 'anys/init/after' );
     }
 
     /**
-     * Gets the plugin version.
+     * Loads textdomain.
      *
      * @since 1.0.0
      */
-    public function plugin_version() {
-        return self::$plugin_version;
+    public function load_textdomain() {
+        load_plugin_textdomain( 'anys', false, ANYS_PATH . '/languages' );
     }
 
     /**
-     * Gets the plugin basename.
+     * Loads dependencies.
      *
      * @since 1.0.0
      */
-    public function plugin_basename() {
-        return self::$plugin_basename;
+    public function load_dependencies() {
+        require_once ANYS_INCLUDES_PATH . 'utilities.php';
+        require_once ANYS_INCLUDES_PATH . 'shortcodes/register.php';
     }
-
-    /**
-     * Gets the plugin slug.
-     *
-     * @since 1.0.0
-     */
-    public function plugin_slug() {
-        return self::$plugin_slug;
-    }
-
-    /**
-     * Gets the plugin name.
-     *
-     * @since 1.0.0
-     */
-    public function plugin_name() {
-        return self::$plugin_name;
-    }
-
-    /**
-     * Gets the plugin directory.
-     *
-     * @since 1.0.0
-     */
-    public function plugin_dir() {
-        return self::$plugin_dir;
-    }
-
-    /**
-     * Gets the plugin url.
-     *
-     * @since 1.0.0
-     */
-    public function plugin_url() {
-        return self::$plugin_url;
-    }
-
-    /**
-     * Loads a directory.
-     *
-     * @since 1.0.0
-     */
-    public function load_directory( $directory_name ) {
-        $path       = trailingslashit( $this->plugin_dir() . 'includes/' . $directory_name );
-        $file_names = glob( $path . '*.php' );
-
-        foreach ( $file_names as $filename ) {
-            if ( file_exists( $filename ) ) {
-                require_once $filename;
-            }
-        }
-    }
-
-    /**
-     * Loads files.
-     *
-     * @since 1.0.0
-     */
-    public function load_files( $file_names = [], $base = false, $attributes = [] ) {
-        foreach ( $file_names as $file_name ) {
-            $this->load_file( $file_name );
-        }
-    }
-
-    /**
-     * Loads a file.
-     *
-     * @since 1.0.0
-     */
-    public function load_file( $file_name = '', $base = false, $attributes = [] ) {
-        $base       = empty( $base ) ? 'includes/' : '/';
-        $attributes = $attributes;
-
-        if ( file_exists( $path = $this->plugin_dir() . $base . $file_name . '.php' ) ) {
-            require_once( $path );
-        }
-    }
-}
-
-/**
- * Returns the application instance.
- *
- * @since 1.0.0
- *
- * @return Anything_Shortcodes
- */
-function anything_shortcodes() {
-    return Plugin::get_instance();
 }
 
 /**
@@ -262,4 +158,4 @@ function anything_shortcodes() {
  *
  * @since 1.0.0
  */
-anything_shortcodes();
+Plugin::get_instance();

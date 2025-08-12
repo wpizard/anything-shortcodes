@@ -88,143 +88,214 @@ function anys_prefix( $text ) {
 }
 
 /**
- * Get attributes.
+ * Safely calls a PHP function if allowed.
  *
- * @since 1.0.0
+ * @param string $function_name
+ * @param array  $args
+ * @param array  $allowed_functions Whitelisted functions.
  *
- * @param array $attributes  Name of the searched key.
- *
- * @return array Returns the value if found; else $default is returned.
+ * @return mixed|null
  */
-function anys_get_shortcode_attributes( $attributes ) {
-    $attributes            = array_map( 'trim', $attributes );
-    $attributes['post_id'] = empty( $attributes['post_id'] ) ? get_the_ID() : $attributes['post_id'];
-
-    foreach ( $attributes as $attribute_key => $attribute ) {
-        if ( 'output' === $attribute_key ) {
-            continue;
-        }
-
-        // Shortcode.
-        if ( str_contains( $attribute, 'sc:' ) ) {
-            $attributes[ $attribute_key ] = anys_do_shortcode_attribute_shortcode( $attributes, $attribute_key, $attribute );
-            continue;
-        }
-
-        // Function.
-        if ( str_contains( $attribute, 'fn:' ) ) {
-            $attributes[ $attribute_key ] = anys_call_shortcode_attribute_function( $attributes, $attribute_key, $attribute );
-            continue;
-        }
+function anys_call_function( $function_name, $args = [], $allowed_functions = [] ) {
+    if ( empty( $allowed_functions ) ) {
+        $allowed_functions = [
+            'get_the_ID',
+            'intval',
+            'sanitize_text_field',
+            'wp_get_current_user',
+            'get_post_status',
+            // Add other allowed functions here
+        ];
     }
 
-    return $attributes;
+    if ( function_exists( $function_name ) && in_array( $function_name, $allowed_functions, true ) ) {
+        return call_user_func_array( $function_name, $args );
+    }
+
+    return null;
 }
 
 /**
- * Get Output.
+ * Formats a value based on given format.
  *
- * @since 1.0.0
+ * @param mixed  $value
+ * @param string $format
+ *
+ * @return string
  */
-function anys_get_shortcode_output( $attributes, $value ) {
-    if ( empty( $attributes['output'] ) ) {
-        return;
+function anys_format_value( $value, $attributes = [] ) {
+    if ( empty( $attributes['format'] ) ) {
+        return $value;
     }
 
-    $attributes['value'] = $value;
-    $output              = '';
+    switch ( $format ) {
+        case 'date':
+            return date_i18n( get_option( 'date_format' ), strtotime( $value ) );
 
-    // HTML.
-    if ( str_contains( $attributes['output'], 'html:' ) ) {
-        $attributes['output'] = str_replace( 'html:', '', $attributes['output'] );
-        $attributes['output'] = ltrim( $attributes['output'], "</p>" );
-        $attributes['output'] = rtrim( $attributes['output'], "<p>" );
+        case 'datetime':
+            return date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), strtotime( $value ) );
 
-        $output = str_replace( '$value', $value, $attributes['output'] );
+        case 'number':
+            return number_format_i18n( floatval( $value ) );
+
+        default:
+            /**
+             * Filter for custom formats.
+             *
+             * @param mixed  $value
+             * @param string $format
+             */
+            return apply_filters( "anys/helper/format/{$format}", $value, $format );
     }
-
-    // Shortcode.
-    if ( str_contains( $attributes['output'], 'sc:' ) ) {
-        $output = anys_do_shortcode_attribute_shortcode( $attributes, 'output', $attributes['output'] );
-    }
-
-    // Function.
-    if ( str_contains( $attributes['output'], 'fn:' ) ) {
-        $output = anys_call_shortcode_attribute_function( $attributes, 'output', $attributes['output'] );
-    }
-
-    return $output;
 }
 
 /**
- * Call shortcode in attributes/output.
+ * Wraps output with before/after strings and applies fallback.
  *
- * @since 1.0.0
+ * @param mixed $value
+ * @param array $attributes
+ *
+ * @return string
  */
-function anys_do_shortcode_attribute_shortcode( $attributes, $attribute_key, $attribute ) {
-    $shortcode            = str_replace( 'sc:', '', $attribute );
-    $shortcode_attributes = '';
-
-    /**
-     * Filters the content of the a shortcode.
-     *
-     * The dynamic portion of the hook name, `$attributes['name']`, refers to
-     * the shortcode name.
-     *
-     * Possible hook names include:
-     *
-     *  - `anys/shortcodes/post-field/content`
-     *  - `anys/shortcodes/post-custom-fields/content`
-     *
-     * @since 1.0.0
-     *
-     * @param string $content    Shortcode content.
-     * @param array  $attributes Shortcode attributes.
-     */
-    $attributes = apply_filters(
-        "anys/shortcodes/{$attributes['name']}/attributes/{$attribute_key}/shortcode",
-        $attributes
-    );
-
-    foreach ( $attributes as $key => $value ) {
-        $shortcode_attributes .= "$key='$value' ";
+function anys_wrap_output( $value, $attributes = [] ) {
+    if ( empty( $value ) && ! empty( $attributes['fallback'] ) ) {
+        $value = $attributes['fallback'];
     }
 
-    return do_shortcode( "[{$shortcode} $shortcode_attributes]" );
+    $before = $attributes['before'] ?? '';
+    $after  = $attributes['after'] ?? '';
+
+    return $before . $value . $after;
 }
 
 /**
- * Call function in attributes/output.
+ * Recursively parses dynamic attribute values and replaces placeholders with caching and security.
  *
- * @since 1.0.0
+ * Supported placeholders:
+ * - {get:param}
+ * - {post:param}
+ * - {func:function,arg1,arg2}
+ * - {shortcode:[tag]}
+ * - {const:NAME}
+ *
+ * @param string|array $value Attribute value or array of values.
+ * @param array        $allowed_functions Whitelisted PHP functions allowed to call.
+ * @param array        $cache Internal cache (used recursively).
+ *
+ * @return string|array
  */
-function anys_call_shortcode_attribute_function( $attributes, $attribute_key, $attribute ) {
-    $function = str_replace( 'fn:', '', $attribute );
+function anys_parse_dynamic_value( $value, $allowed_functions = [], &$cache = [] ) {
+    if ( is_array( $value ) ) {
+        foreach ( $value as $k => $v ) {
+            $value[ $k ] = anys_parse_dynamic_value( $v, $allowed_functions, $cache );
+        }
 
-    if ( ! is_callable( $function ) ) {
-        return;
+        return $value;
     }
 
-    /**
-     * Filters the content of the a shortcode.
-     *
-     * The dynamic portion of the hook name, `$attributes['name']`, refers to
-     * the shortcode name.
-     *
-     * Possible hook names include:
-     *
-     *  - `anys/shortcodes/post-field/content`
-     *  - `anys/shortcodes/post-custom-fields/content`
-     *
-     * @since 1.0.0
-     *
-     * @param string $content    Shortcode content.
-     * @param array  $attributes Shortcode attributes.
-     */
-    $function_attributes = apply_filters(
-        "anys/shortcodes/{$attributes['name']}/attributes/{$attribute_key}/function",
-        $attributes
-    );
+    if ( ! is_string( $value ) ) {
+        return $value;
+    }
 
-    return call_user_func_array( $function, [ $function_attributes ] );
+    if ( isset( $cache[ $value ] ) ) {
+        return $cache[ $value ];
+    }
+
+    if ( empty( $allowed_functions ) ) {
+        $allowed_functions = [
+            'get_the_ID',
+            'intval',
+            'sanitize_text_field',
+            'wp_get_current_user',
+            'get_post_status',
+        ];
+    }
+
+    $callback = function( $full ) use ( &$allowed_functions, &$cache ) {
+        if ( preg_match( '/^\{get:([a-zA-Z0-9_-]+)\}$/', $full, $m ) ) {
+            $val = isset( $_GET[ $m[1] ] ) ? sanitize_text_field( wp_unslash( $_GET[ $m[1] ] ) ) : '';
+            $cache[ $full ] = $val;
+            return $val;
+        }
+
+        if ( preg_match( '/^\{post:([a-zA-Z0-9_-]+)\}$/', $full, $m ) ) {
+            $val = isset( $_POST[ $m[1] ] ) ? sanitize_text_field( wp_unslash( $_POST[ $m[1] ] ) ) : '';
+            $cache[ $full ] = $val;
+            return $val;
+        }
+
+        if ( preg_match( '/^\{func:([a-zA-Z0-9_\\\\]+)(?:,(.*))?\}$/', $full, $m ) ) {
+            $function = $m[1];
+
+            if ( ! in_array( $function, $allowed_functions, true ) ) {
+                return '';
+            }
+
+            $args = isset( $m[2] ) ? array_map( 'trim', explode( ',', $m[2] ) ) : [];
+            $args = array_map( function( $arg ) use ( &$allowed_functions, &$cache ) {
+                return anys_parse_dynamic_value( $arg, $allowed_functions, $cache );
+            }, $args );
+
+            if ( function_exists( $function ) ) {
+                $val = call_user_func_array( $function, $args );
+                if ( is_string( $val ) ) {
+                    $val = sanitize_text_field( $val );
+                }
+                $cache[ $full ] = $val;
+                return $val;
+            }
+
+            return '';
+        }
+
+        if ( preg_match( '/^\{shortcode:(\[.*\])\}$/', $full, $m ) ) {
+            $val = do_shortcode( $m[1] );
+            $val = wp_strip_all_tags( $val );
+            $cache[ $full ] = $val;
+            return $val;
+        }
+
+        if ( preg_match( '/^\{const:([A-Z0-9_]+)\}$/', $full, $m ) ) {
+            $val = defined( $m[1] ) ? constant( $m[1] ) : '';
+            $cache[ $full ] = $val;
+            return $val;
+        }
+
+        return $full;
+    };
+
+    $previous_value = null;
+    $current_value = $value;
+
+    while ( $previous_value !== $current_value ) {
+        $previous_value = $current_value;
+
+        if ( preg_match( '/^\{(get|post|func|shortcode|const):.*\}$/', $current_value ) ) {
+            $current_value = $callback( $current_value );
+        } else {
+            break;
+        }
+    }
+
+    $cache[ $value ] = $current_value;
+
+    return $current_value;
+}
+
+/**
+ * Parses all shortcode attributes recursively with caching and security.
+ *
+ * @param array $atts
+ * @param array $allowed_functions Optional whitelist of PHP functions allowed.
+ *
+ * @return array
+ */
+function anys_parse_dynamic_attributes( $atts, $allowed_functions = [] ) {
+    $cache = [];
+
+    foreach ( $atts as $key => $value ) {
+        $atts[ $key ] = anys_parse_dynamic_value( $value, $allowed_functions, $cache );
+    }
+
+    return $atts;
 }

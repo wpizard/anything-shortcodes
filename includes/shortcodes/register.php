@@ -5,18 +5,11 @@ namespace AnyS\Shortcodes;
 defined( 'ABSPATH' ) or die();
 
 /**
- * Registers Shortcodes class.
+ * Registers the main [anys] shortcode.
  *
  * @since 1.0.0
  */
 final class Register {
-
-    /**
-     * The plugin instance.
-     *
-     * @since 1.0.0
-     */
-    private $plugin;
 
     /**
      * The instance.
@@ -50,7 +43,7 @@ final class Register {
     }
 
     /**
-     * Adds hooks.
+     * Adds WordPress hooks.
      *
      * @since 1.0.0
      */
@@ -59,7 +52,7 @@ final class Register {
     }
 
     /**
-     * Registers shortcodes.
+     * Registers the shortcode.
      *
      * @since 1.0.0
      */
@@ -68,22 +61,36 @@ final class Register {
     }
 
     /**
-     * Renders shortcodes.
+     * Renders the [anys] shortcode.
      *
      * @since 1.0.0
      *
      * @param array  $attributes Shortcode attributes.
      * @param string $content    Shortcode content.
+     *
+     * @return string
      */
     public function render_shortcode( $attributes, $content ) {
 
+        error_log( print_r( $attributes, true ) );
+
+        // Default attributes.
+        $defaults = [
+            'type'     => '',
+            'name'     => '',
+            'id'       => '',
+            'before'   => '',
+            'after'    => '',
+            'fallback' => '',
+            'format'   => '',
+        ];
+
+        $attributes = shortcode_atts( $defaults, $attributes, 'anys' );
+
         /**
-         * Filters the attributes of the shortcodes.
+         * Filters the shortcode attributes before processing.
          *
          * @since 1.0.0
-         *
-         * @param array  $attributes Shortcode attributes.
-         * @param string $content    Shortcode content.
          */
         $attributes = apply_filters(
             'anys/shortcodes/attributes',
@@ -92,181 +99,94 @@ final class Register {
         );
 
         /**
-         * Filters the attributes of the a shortcode.
-         *
-         * The dynamic portion of the hook name, `$attributes['name']`, refers to
-         * the shortcode name.
-         *
-         * Possible hook names include:
-         *
-         *  - `anys/shortcodes/post-field/attributes`
-         *  - `anys/shortcodes/post-custom-fields/attributes`
+         * Dynamic filter for attributes by type.
          *
          * @since 1.0.0
-         *
-         * @param array  $attributes Shortcode attributes.
-         * @param string $content    Shortcode content.
          */
-        $attributes = apply_filters(
-            "anys/shortcodes/{$attributes['name']}/attributes",
+        if ( ! empty( $attributes['type'] ) ) {
+            $attributes = apply_filters(
+                "anys/shortcodes/{$attributes['type']}/attributes",
+                $attributes,
+                $content
+            );
+        }
+
+        // Bails early if no type or name is provided.
+        if ( empty( $attributes['type'] ) || empty( $attributes['name'] ) ) {
+            return '';
+        }
+
+        /**
+         * Fires before rendering the shortcode output.
+         *
+         * @since 1.0.0
+         */
+        do_action(
+            'anys/shortcodes/output/before',
             $attributes,
             $content
         );
 
-        /**
-         * Filters the content of the shortcodes.
-         *
-         * @since 1.0.0
-         *
-         * @param string $content    Shortcode content.
-         * @param array  $attributes Shortcode attributes.
-         */
-        $content = apply_filters(
-            'anys/shortcodes/content',
-            $content,
-            $attributes
+        do_action(
+            "anys/shortcodes/{$attributes['type']}/output/before",
+            $attributes,
+            $content
         );
-
-        /**
-         * Filters the content of the a shortcode.
-         *
-         * The dynamic portion of the hook name, `$attributes['name']`, refers to
-         * the shortcode name.
-         *
-         * Possible hook names include:
-         *
-         *  - `anys/shortcodes/post-field/content`
-         *  - `anys/shortcodes/post-custom-fields/content`
-         *
-         * @since 1.0.0
-         *
-         * @param string $content    Shortcode content.
-         * @param array  $attributes Shortcode attributes.
-         */
-        $content = apply_filters(
-            "anys/shortcodes/{$attributes['name']}/content",
-            $content,
-            $attributes
-        );
-
-        // Bails early if 'name' attribute is missing.
-        if ( empty( $attributes['name'] ) ) {
-            return;
-        }
 
         ob_start();
 
-        /**
-         * Fires before the output of the shortcodes.
-         *
-         * @since 1.0.0
-         *
-         * @param string $content    Shortcode content.
-         * @param array  $attributes Shortcode attributes.
-         */
-        do_action(
-            "anys/shortcodes/output/before",
-            $attributes,
-            $content
-        );
+        // Loads the matching handler file if it exists.
+        $file_name = str_replace( '_', '-', $attributes['type'] );
+        $file      = ANYS_SHORTCODES_PATH . "{$file_name}.php";
 
-        /**
-         * Fires before the output of a shortcode.
-         *
-         * The dynamic portion of the hook name, `$attributes['name']`, refers to
-         * the shortcode name.
-         *
-         * Possible hook names include:
-         *
-         *  - `anys/shortcodes/post-field/output/before`
-         *  - `anys/shortcodes/post-custom-fields/output/before`
-         *
-         * @since 1.0.0
-         *
-         * @param string $content    Shortcode content.
-         * @param array  $attributes Shortcode attributes.
-         */
-        do_action(
-            "anys/shortcodes/{$attributes['name']}/output/before",
-            $attributes,
-            $content
-        );
-
-        require ANYS_INCLUDES_PATH . "shortcodes/{$attributes['name']}.php";
-
-        /**
-         * Fires after the output of the shortcodes.
-         *
-         * @since 1.0.0
-         *
-         * @param string $content    Shortcode content.
-         * @param array  $attributes Shortcode attributes.
-         */
-        do_action(
-            "anys/shortcodes/output/after",
-            $attributes,
-            $content
-        );
-
-        /**
-         * Fires after the output of a shortcode.
-         *
-         * The dynamic portion of the hook name, `$attributes['name']`, refers to
-         * the shortcode name.
-         *
-         * Possible hook names include:
-         *
-         *  - `anys/shortcodes/post-field/output/after`
-         *  - `anys/shortcodes/post-custom-fields/output/after`
-         *
-         * @since 1.0.0
-         *
-         * @param string $content    Shortcode content.
-         * @param array  $attributes Shortcode attributes.
-         */
-        do_action(
-            "anys/shortcodes/{$attributes['name']}/output/after",
-            $attributes,
-            $content
-        );
+        if ( file_exists( $file ) ) {
+            require $file;
+        } else {
+            /**
+             * Fires when the handler file is missing.
+             *
+             * @since 1.0.0
+             */
+            do_action(
+                "anys/shortcodes/{$attributes['type']}/missing",
+                $attributes,
+                $content
+            );
+        }
 
         $output = ob_get_clean();
 
         /**
-         * Filters the output of the shortcodes.
+         * Fires after rendering the shortcode output.
          *
          * @since 1.0.0
+         */
+        do_action(
+            'anys/shortcodes/output/after',
+            $attributes,
+            $content
+        );
+
+        do_action(
+            "anys/shortcodes/{$attributes['type']}/output/after",
+            $attributes,
+            $content
+        );
+
+        /**
+         * Filters the final shortcode output.
          *
-         * @param string $output     Shortcode output.
-         * @param array  $attributes Shortcode attributes.
-         * @param string $content    Shortcode content.
+         * @since 1.0.0
          */
         $output = apply_filters(
-            "anys/shortcodes/output",
+            'anys/shortcodes/output',
             $output,
             $attributes,
             $content
         );
 
-        /**
-         * Filters the output of the a shortcode.
-         *
-         * The dynamic portion of the hook name, `$attributes['name']`, refers to
-         * the shortcode name.
-         *
-         * Possible hook names include:
-         *
-         *  - `anys/shortcodes/post-field/output`
-         *  - `anys/shortcodes/post-custom-fields/output`
-         *
-         * @since 1.0.0
-         *
-         * @param string $output     Shortcode output.
-         * @param array  $attributes Shortcode attributes.
-         * @param string $content    Shortcode content.
-         */
         $output = apply_filters(
-            "anys/shortcodes/{$attributes['name']}/output",
+            "anys/shortcodes/{$attributes['type']}/output",
             $output,
             $attributes,
             $content

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Anything Shortcodes
  * Plugin URI: https://wordpress.org/plugins/anything-shortcodes
- * Description: Ready-to-use shortcodes for accessing any data in WordPress.
+ * Description: Get and display anything in WordPress with shortcode.
  * Version: 1.0.0
  * Author: WPizard
  * Author URI: https://wpizard.com/
@@ -81,12 +81,12 @@ final class Plugin {
 
         define( 'ANYS_PATH', wp_normalize_path( trailingslashit( plugin_dir_path( __FILE__ ) ) ) );
         define( 'ANYS_INCLUDES_PATH', ANYS_PATH . 'includes/' );
-        define( 'ANYS_MODULES_PATH', ANYS_PATH . 'includes/modules/' );
+        define( 'ANYS_SHORTCODES_PATH', ANYS_PATH . 'includes/shortcodes/' );
         define( 'ANYS_ASSETS_PATH', ANYS_PATH . 'assets/' );
 
         define( 'ANYS_URL', wp_normalize_path( trailingslashit( plugin_dir_url( __FILE__ ) ) ) );
         define( 'ANYS_INCLUDES_URL', ANYS_URL . 'includes/' );
-        define( 'ANYS_MODULES_URL', ANYS_URL . 'includes/modules/' );
+        define( 'ANYS_SHORTCODES_URL', ANYS_URL . 'includes/shortcodes/' );
         define( 'ANYS_ASSETS_URL', ANYS_URL . 'assets/' );
         define( 'ANYS_CSS_URL', ANYS_ASSETS_URL . 'css/' );
         define( 'ANYS_JS_URL', ANYS_ASSETS_URL . 'js/' );
@@ -100,7 +100,7 @@ final class Plugin {
      */
     protected function add_hooks() {
         add_action( 'plugins_loaded', [ $this, 'init' ] );
-        add_action( 'anys/init', [ $this, 'load_textdomain' ] );
+        add_action( 'init', [ $this, 'load_textdomain' ] );
         add_action( 'anys/init', [ $this, 'load_dependencies' ] );
     }
 

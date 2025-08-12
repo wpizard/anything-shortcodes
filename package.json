@@ -28,7 +28,7 @@
         "pot": "wp-pot --domain 'anys' --package 'Anything_Shortcodes' --dest-file 'languages/anything-shortcodes.pot' --src '**/*.php'",
         "build:css": "postcss assets/css/**/[!_]*.css --dir assets/dist/css",
         "build:js": "babel assets/js/**/[!_]*.js -d assets/dist/js",
-        "build": "npm run clean && npm run build:css && npm run build:js",
+        "build": "npm run clean",
         "watch": "npm-watch",
         "copy": "copyfiles 'languages/*' 'assets/dist/**/*' 'assets/lib/**/*' 'includes/**/*' 'vendor/**/*' anything-shortcodes.php readme.txt anything-shortcodes",
         "zip": "zip-build --build-dir 'anything-shortcodes' --zip-dir '.' --template '%NAME%.%EXT%'",

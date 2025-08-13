@@ -71,9 +71,6 @@ final class Register {
      * @return string
      */
     public function render_shortcode( $attributes, $content ) {
-
-        error_log( print_r( $attributes, true ) );
-
         // Default attributes.
         $defaults = [
             'type'     => '',

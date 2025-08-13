@@ -133,8 +133,7 @@ final class Register {
         ob_start();
 
         // Loads the matching handler file if it exists.
-        $file_name = str_replace( '_', '-', $attributes['type'] );
-        $file      = ANYS_SHORTCODES_PATH . "{$file_name}.php";
+        $file = ANYS_SHORTCODES_PATH . "{$attributes['type']}.php";
 
         if ( file_exists( $file ) ) {
             require $file;

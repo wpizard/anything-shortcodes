@@ -92,21 +92,11 @@ function anys_prefix( $text ) {
  *
  * @param string $function_name
  * @param array  $args
- * @param array  $allowed_functions Whitelisted functions.
  *
  * @return mixed|null
  */
-function anys_call_function( $function_name, $args = [], $allowed_functions = [] ) {
-    if ( empty( $allowed_functions ) ) {
-        $allowed_functions = [
-            'get_the_ID',
-            'intval',
-            'sanitize_text_field',
-            'wp_get_current_user',
-            'get_post_status',
-            // Add other allowed functions here
-        ];
-    }
+function anys_call_function( $function_name, $args = [] ) {
+    $allowed_functions = anys_get_allowed_functions();
 
     if ( function_exists( $function_name ) && in_array( $function_name, $allowed_functions, true ) ) {
         return call_user_func_array( $function_name, $args );
@@ -263,15 +253,14 @@ function anys_wrap_output( $value, $attributes = [] ) {
  * - {const:NAME}
  *
  * @param string|array $value Attribute value or array of values.
- * @param array        $allowed_functions Whitelisted PHP functions allowed to call.
  * @param array        $cache Internal cache (used recursively).
  *
  * @return string|array
  */
-function anys_parse_dynamic_value( $value, $allowed_functions = [], &$cache = [] ) {
+function anys_parse_dynamic_value( $value, &$cache = [] ) {
     if ( is_array( $value ) ) {
         foreach ( $value as $k => $v ) {
-            $value[ $k ] = anys_parse_dynamic_value( $v, $allowed_functions, $cache );
+            $value[ $k ] = anys_parse_dynamic_value( $v, $cache );
         }
 
         return $value;
@@ -285,26 +274,20 @@ function anys_parse_dynamic_value( $value, $allowed_functions = [], &$cache = []
         return $cache[ $value ];
     }
 
-    if ( empty( $allowed_functions ) ) {
-        $allowed_functions = [
-            'get_the_ID',
-            'intval',
-            'sanitize_text_field',
-            'wp_get_current_user',
-            'get_post_status',
-        ];
-    }
+    $allowed_functions = anys_get_allowed_functions();
 
     $callback = function( $full ) use ( &$allowed_functions, &$cache ) {
         if ( preg_match( '/^\{get:([a-zA-Z0-9_-]+)\}$/', $full, $m ) ) {
             $val = isset( $_GET[ $m[1] ] ) ? sanitize_text_field( wp_unslash( $_GET[ $m[1] ] ) ) : '';
             $cache[ $full ] = $val;
+
             return $val;
         }
 
         if ( preg_match( '/^\{post:([a-zA-Z0-9_-]+)\}$/', $full, $m ) ) {
             $val = isset( $_POST[ $m[1] ] ) ? sanitize_text_field( wp_unslash( $_POST[ $m[1] ] ) ) : '';
             $cache[ $full ] = $val;
+
             return $val;
         }
 
@@ -317,7 +300,7 @@ function anys_parse_dynamic_value( $value, $allowed_functions = [], &$cache = []
 
             $args = isset( $m[2] ) ? array_map( 'trim', explode( ',', $m[2] ) ) : [];
             $args = array_map( function( $arg ) use ( &$allowed_functions, &$cache ) {
-                return anys_parse_dynamic_value( $arg, $allowed_functions, $cache );
+                return anys_parse_dynamic_value( $arg, $cache );
             }, $args );
 
             if ( function_exists( $function ) ) {
@@ -332,16 +315,18 @@ function anys_parse_dynamic_value( $value, $allowed_functions = [], &$cache = []
             return '';
         }
 
-        if ( preg_match( '/^\{shortcode:(\[.*\])\}$/', $full, $m ) ) {
-            $val = do_shortcode( $m[1] );
+        if ( preg_match( '/^\{shortcode:\((.*)\)\}$/', $full, $m ) ) {
+            $val = do_shortcode( '[' . $m[1] . ']' );
             $val = wp_strip_all_tags( $val );
             $cache[ $full ] = $val;
+
             return $val;
         }
 
         if ( preg_match( '/^\{const:([A-Z0-9_]+)\}$/', $full, $m ) ) {
             $val = defined( $m[1] ) ? constant( $m[1] ) : '';
             $cache[ $full ] = $val;
+
             return $val;
         }
 
@@ -370,16 +355,102 @@ function anys_parse_dynamic_value( $value, $allowed_functions = [], &$cache = []
  * Parses all shortcode attributes recursively with caching and security.
  *
  * @param array $atts
- * @param array $allowed_functions Optional whitelist of PHP functions allowed.
  *
  * @return array
  */
-function anys_parse_dynamic_attributes( $atts, $allowed_functions = [] ) {
+function anys_parse_dynamic_attributes( $atts ) {
     $cache = [];
 
     foreach ( $atts as $key => $value ) {
-        $atts[ $key ] = anys_parse_dynamic_value( $value, $allowed_functions, $cache );
+        $atts[ $key ] = anys_parse_dynamic_value( $value, $cache );
     }
 
     return $atts;
+}
+
+/**
+ * Gets the allowed functions list.
+ *
+ * @since 1.1.0
+ *
+ * @return array The list of allowed function names.
+ */
+function anys_get_allowed_functions() {
+    // Default allowed functions.
+    $default_functions = anys_get_default_allowed_functions();
+
+    // Get user-defined functions from settings.
+    $options        = get_option( 'anys_settings' );
+    $user_functions = isset( $options['anys_function_whitelist'] ) && is_array( $options['anys_function_whitelist'] )
+        ? $options['anys_function_whitelist']
+        : [];
+
+    // Merge and remove duplicates.
+    $all_functions = array_unique( array_merge( $default_functions, $user_functions ) );
+
+    // Keep only existing functions.
+    $allowed_functions = array_filter( $all_functions, 'function_exists' );
+
+    return $allowed_functions;
+}
+
+/**
+ * Gets the default allowed functions list.
+ *
+ * @since 1.1.0
+ *
+ * @return array The list of default allowed function names.
+ */
+function anys_get_default_allowed_functions() {
+    $default_functions = [
+        'abs',
+        'ceil',
+        'floor',
+        'round',
+        'strtoupper',
+        'strtolower',
+        'ucfirst',
+        'lcfirst',
+        'ucwords',
+        'strlen',
+        'strpos',
+        'substr',
+        'trim',
+        'nl2br',
+        'htmlspecialchars',
+        'htmlentities',
+        'urlencode',
+        'urldecode',
+        'json_encode',
+        'json_decode',
+        'implode',
+        'explode',
+        'count',
+        'number_format',
+        'date',
+        'time',
+        'esc_html',
+        'esc_html_e',
+        'esc_attr',
+        'esc_url',
+        'esc_textarea',
+        'wp_kses_post',
+        'wp_kses_data',
+        'sanitize_text_field',
+        'sanitize_email',
+        'sanitize_key',
+        'sanitize_html_class',
+        'sanitize_title',
+        'sanitize_user',
+        'wp_trim_words',
+        'wp_strip_all_tags',
+        'wp_specialchars_decode',
+        'wpautop',
+        'date_i18n',
+        'wp_date',
+        'current_time',
+        'get_locale',
+    ];
+
+    return apply_filters( 'anys/default_allowed_functions', $default_functions );
 }

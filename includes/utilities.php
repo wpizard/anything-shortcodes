@@ -118,15 +118,20 @@ function anys_call_function( $function_name, $args = [], $allowed_functions = []
 /**
  * Formats a value based on given format.
  *
+ * @since 1.0.0
+ * @since 1.1.0 Add more formats.
+ *
  * @param mixed  $value
  * @param string $format
- *
  * @return string
  */
 function anys_format_value( $value, $attributes = [] ) {
     if ( empty( $attributes['format'] ) ) {
         return $value;
     }
+
+    $format    = $attributes['format'];
+    $delimiter = isset( $attributes['delimiter'] ) ? $attributes['delimiter'] : ', ';
 
     switch ( $format ) {
         case 'date':
@@ -138,6 +143,85 @@ function anys_format_value( $value, $attributes = [] ) {
         case 'number':
             return number_format_i18n( floatval( $value ) );
 
+        case 'json':
+            return wp_json_encode( $value );
+
+        case 'serialize':
+            return maybe_serialize( $value );
+
+        case 'unserialize':
+            return maybe_unserialize( $value );
+
+        case 'print_r':
+            return print_r( $value, true );
+
+        case 'var_export':
+            return var_export( $value, true );
+
+        case 'implode':
+            if ( is_array( $value ) ) {
+                if ( array_values( $value ) !== $value ) {
+                    return implode( $delimiter, array_values( $value ) );
+                }
+                return implode( $delimiter, $value );
+            }
+
+            return $value;
+
+        case 'keys':
+            if ( is_array( $value ) ) {
+                return implode( $delimiter, array_keys( $value ) );
+            }
+
+            return $value;
+
+        case 'capitalize':
+            if ( is_string( $value ) ) {
+                return mb_convert_case( $value, MB_CASE_TITLE, "UTF-8" );
+            }
+
+            return $value;
+
+        case 'uppercase':
+            if ( is_string( $value ) ) {
+                return mb_strtoupper( $value, "UTF-8" );
+            }
+
+            return $value;
+
+        case 'lowercase':
+            if ( is_string( $value ) ) {
+                return mb_strtolower( $value, "UTF-8" );
+            }
+
+            return $value;
+
+        case 'strip_tags':
+            if ( is_string( $value ) ) {
+                return strip_tags( $value );
+            }
+
+            return $value;
+
+        case 'values':
+            if ( is_array( $value ) ) {
+                return implode( $delimiter, array_values( $value ) );
+            }
+
+            return $value;
+
+        case 'keys_values':
+            if ( is_array( $value ) ) {
+                $pairs = [];
+                foreach ( $value as $k => $v ) {
+                    $pairs[] = "{$k}: {$v}";
+                }
+
+                return implode( $delimiter, $pairs );
+            }
+
+            return $value;
+
         default:
             /**
              * Filter for custom formats.
@@ -145,7 +229,7 @@ function anys_format_value( $value, $attributes = [] ) {
              * @param mixed  $value
              * @param string $format
              */
-            return apply_filters( "anys/helper/format/{$format}", $value, $format );
+            return apply_filters( "anys/format/{$format}", $value, $format );
     }
 }
 

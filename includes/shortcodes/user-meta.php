@@ -11,6 +11,8 @@
  * - after: Content to append after the output (optional)
  * - fallback: Content to display if the value is empty (optional)
  * - format: Formatting for date, datetime, number, etc. (optional)
+ *
+ * @since 1.0.0
  */
 
 defined( 'ABSPATH' ) || die();

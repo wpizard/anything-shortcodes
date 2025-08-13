@@ -9,6 +9,8 @@
  * - after: Content after the value (optional)
  * - fallback: Fallback content if the value is empty (optional)
  * - format: Formatting for date, datetime, number, etc. (optional)
+ *
+ * @since 1.0.0
  */
 
 defined( 'ABSPATH' ) || die();

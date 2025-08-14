@@ -73,6 +73,7 @@ final class Plugin {
      * Defines constants.
      *
      * @since 1.0.0
+     * @since 1.1.0 Changes Shortcode constant to Types.
      */
     protected function define_constants() {
         define( 'ANYS_NAME', esc_html__( 'Anything Shortcodes', 'anys' ) );
@@ -81,12 +82,12 @@ final class Plugin {
 
         define( 'ANYS_PATH', wp_normalize_path( trailingslashit( plugin_dir_path( __FILE__ ) ) ) );
         define( 'ANYS_INCLUDES_PATH', ANYS_PATH . 'includes/' );
-        define( 'ANYS_SHORTCODES_PATH', ANYS_PATH . 'includes/shortcodes/' );
+        define( 'ANYS_TYPES_PATH', ANYS_PATH . 'includes/types/' );
         define( 'ANYS_ASSETS_PATH', ANYS_PATH . 'assets/' );
 
         define( 'ANYS_URL', wp_normalize_path( trailingslashit( plugin_dir_url( __FILE__ ) ) ) );
         define( 'ANYS_INCLUDES_URL', ANYS_URL . 'includes/' );
-        define( 'ANYS_SHORTCODES_URL', ANYS_URL . 'includes/shortcodes/' );
+        define( 'ANYS_TYPES_URL', ANYS_URL . 'includes/types/' );
         define( 'ANYS_ASSETS_URL', ANYS_URL . 'assets/' );
         define( 'ANYS_CSS_URL', ANYS_ASSETS_URL . 'css/' );
         define( 'ANYS_JS_URL', ANYS_ASSETS_URL . 'js/' );
@@ -146,11 +147,12 @@ final class Plugin {
      * Loads dependencies.
      *
      * @since 1.0.0
+     * @since 1.1.0 Changes file name.
      */
     public function load_dependencies() {
         require_once ANYS_INCLUDES_PATH . 'utilities.php';
         require_once ANYS_INCLUDES_PATH . 'settings-page.php';
-        require_once ANYS_INCLUDES_PATH . 'shortcodes/register.php';
+        require_once ANYS_INCLUDES_PATH . 'register-shortcodes.php';
     }
 }
 

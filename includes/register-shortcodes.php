@@ -1,15 +1,16 @@
 <?php
 
-namespace AnyS\Shortcodes;
+namespace AnyS;
 
 defined( 'ABSPATH' ) or die();
 
 /**
- * Registers the main [anys] shortcode.
+ * Registers the shortcodes.
  *
  * @since 1.0.0
+ * @since 1.1.0 Changes file name.
  */
-final class Register {
+final class Register_Shortcodes {
 
     /**
      * The instance.
@@ -23,7 +24,7 @@ final class Register {
      *
      * @since 1.0.0
      *
-     * @return Register
+     * @return Register_Shortcodes
      */
     public static function get_instance() {
         if ( is_null( self::$instance ) ) {
@@ -52,7 +53,7 @@ final class Register {
     }
 
     /**
-     * Registers the shortcode.
+     * Registers Shortcodes the shortcode.
      *
      * @since 1.0.0
      */
@@ -61,9 +62,10 @@ final class Register {
     }
 
     /**
-     * Renders the [anys] shortcode.
+     * Renders the shortcode.
      *
      * @since 1.0.0
+     * @since 1.1.0 Changes hook names format.
      *
      * @param array  $attributes Shortcode attributes.
      * @param string $content    Shortcode content.
@@ -73,13 +75,14 @@ final class Register {
     public function render_shortcode( $attributes, $content ) {
         // Default attributes.
         $defaults = [
-            'type'     => '',
-            'name'     => '',
-            'id'       => '',
-            'before'   => '',
-            'after'    => '',
-            'fallback' => '',
-            'format'   => '',
+            'type'      => '',
+            'name'      => '',
+            'id'        => '',
+            'before'    => '',
+            'after'     => '',
+            'fallback'  => '',
+            'format'    => '',
+            'delimiter' => '',
         ];
 
         $attributes = shortcode_atts( $defaults, $attributes, 'anys' );
@@ -90,7 +93,7 @@ final class Register {
          * @since 1.0.0
          */
         $attributes = apply_filters(
-            'anys/shortcodes/attributes',
+            'anys/attributes',
             $attributes,
             $content
         );
@@ -102,7 +105,7 @@ final class Register {
          */
         if ( ! empty( $attributes['type'] ) ) {
             $attributes = apply_filters(
-                "anys/shortcodes/{$attributes['type']}/attributes",
+                "anys/{$attributes['type']}/attributes",
                 $attributes,
                 $content
             );
@@ -119,13 +122,13 @@ final class Register {
          * @since 1.0.0
          */
         do_action(
-            'anys/shortcodes/output/before',
+            'anys/output/before',
             $attributes,
             $content
         );
 
         do_action(
-            "anys/shortcodes/{$attributes['type']}/output/before",
+            "anys/{$attributes['type']}/output/before",
             $attributes,
             $content
         );
@@ -133,7 +136,7 @@ final class Register {
         ob_start();
 
         // Loads the matching handler file if it exists.
-        $file = ANYS_SHORTCODES_PATH . "{$attributes['type']}.php";
+        $file = ANYS_INCLUDES_PATH . "types/anys/{$attributes['type']}.php";
 
         if ( file_exists( $file ) ) {
             require $file;
@@ -144,7 +147,7 @@ final class Register {
              * @since 1.0.0
              */
             do_action(
-                "anys/shortcodes/{$attributes['type']}/missing",
+                "anys/{$attributes['type']}/missing",
                 $attributes,
                 $content
             );
@@ -158,13 +161,13 @@ final class Register {
          * @since 1.0.0
          */
         do_action(
-            'anys/shortcodes/output/after',
+            'anys/output/after',
             $attributes,
             $content
         );
 
         do_action(
-            "anys/shortcodes/{$attributes['type']}/output/after",
+            "anys/{$attributes['type']}/output/after",
             $attributes,
             $content
         );
@@ -175,14 +178,14 @@ final class Register {
          * @since 1.0.0
          */
         $output = apply_filters(
-            'anys/shortcodes/output',
+            'anys/output',
             $output,
             $attributes,
             $content
         );
 
         $output = apply_filters(
-            "anys/shortcodes/{$attributes['type']}/output",
+            "anys/{$attributes['type']}/output",
             $output,
             $attributes,
             $content
@@ -197,4 +200,4 @@ final class Register {
  *
  * @since 1.0.0
  */
-Register::get_instance();
+Register_Shortcodes::get_instance();

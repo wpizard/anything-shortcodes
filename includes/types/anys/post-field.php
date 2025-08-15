@@ -30,4 +30,5 @@ $value = anys_format_value( $value, $attributes );
 // Wraps with before/after and apply fallback.
 $output = anys_wrap_output( $value, $attributes );
 
+// Outputs the sanitized content.
 echo wp_kses_post( $output );

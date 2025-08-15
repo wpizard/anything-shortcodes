@@ -26,10 +26,10 @@ $parts = array_map( 'trim', explode( ',', $attributes['name'] ?? '' ) );
 // Retrieves the function name.
 $function = array_shift( $parts );
 
-// Defines the whitelist of allowed functions for security.
-$allowed_functions = anys_get_allowed_functions();
+// Defines the whitelist of whitelisted functions for security.
+$whitelisted_functions = anys_get_whitelisted_functions();
 
-// Executes the function if it's allowed.
+// Executes the function if it's whitelisted.
 $value = '';
 
 if ( ! $function ) {
@@ -48,17 +48,17 @@ if ( ! function_exists( $function ) ) {
     return '';
 }
 
-if ( ! in_array( $function, $allowed_functions, true ) ) {
+if ( ! in_array( $function, $whitelisted_functions, true ) ) {
     if ( current_user_can( 'manage_options' ) ) {
         $settings_url = admin_url( 'options-general.php?page=anys-settings' );
         printf(
             /* translators: %1$s is the function name, %2$s is the settings page URL */
-            esc_html__( 'Function "%1$s" is not allowed. Please %2$s.', 'anys' ),
+            esc_html__( 'Function "%1$s" is not whitelisted. Please %2$s.', 'anys' ),
             esc_html( $function ),
             sprintf(
                 '<a href="%s">%s</a>',
                 esc_url( $settings_url ),
-                esc_html__( 'add it to Allowed Functions in settings', 'anys' )
+                esc_html__( 'add it to whitelisted Functions in settings', 'anys' )
             )
         );
     }

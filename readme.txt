@@ -172,7 +172,7 @@ Custom formats are supported via filters.
 
 == Security ==
 - All inputs sanitized using WordPress functions.
-- Function calls restricted to allowed list.
+- Function calls restricted to whitelisted list.
 - Outputs sanitized with `wp_kses_post()`.
 - Dynamic parsing uses caching for performance.
 

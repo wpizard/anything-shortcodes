@@ -227,7 +227,7 @@ The `[anys]` shortcode provides several actions and filters that allow you to cu
 
 ## Security
 - All inputs are sanitized using WordPress functions.
-- Function calls in `{func:}` placeholders are restricted to a allowed functions.
+- Function calls in `{func:}` placeholders are restricted to a whitelisted functions.
 - Outputs are sanitized and escaped with `wp_kses_post()` before rendering.
 - Dynamic attribute parsing includes caching for performance.
 

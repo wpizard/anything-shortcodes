@@ -88,7 +88,7 @@ function anys_prefix( $text ) {
 }
 
 /**
- * Safely calls a PHP function if allowed.
+ * Safely calls a PHP function if whitelisted.
  *
  * @param string $function_name
  * @param array  $args
@@ -96,9 +96,9 @@ function anys_prefix( $text ) {
  * @return mixed|null
  */
 function anys_call_function( $function_name, $args = [] ) {
-    $allowed_functions = anys_get_allowed_functions();
+    $whitelisted_functions = anys_get_whitelisted_functions();
 
-    if ( function_exists( $function_name ) && in_array( $function_name, $allowed_functions, true ) ) {
+    if ( function_exists( $function_name ) && in_array( $function_name, $whitelisted_functions, true ) ) {
         return call_user_func_array( $function_name, $args );
     }
 
@@ -274,9 +274,9 @@ function anys_parse_dynamic_value( $value, &$cache = [] ) {
         return $cache[ $value ];
     }
 
-    $allowed_functions = anys_get_allowed_functions();
+    $whitelisted_functions = anys_get_whitelisted_functions();
 
-    $callback = function( $full ) use ( &$allowed_functions, &$cache ) {
+    $callback = function( $full ) use ( &$whitelisted_functions, &$cache ) {
         if ( preg_match( '/^\{get:([a-zA-Z0-9_-]+)\}$/', $full, $m ) ) {
             $val = isset( $_GET[ $m[1] ] ) ? sanitize_text_field( wp_unslash( $_GET[ $m[1] ] ) ) : '';
             $cache[ $full ] = $val;
@@ -294,12 +294,12 @@ function anys_parse_dynamic_value( $value, &$cache = [] ) {
         if ( preg_match( '/^\{func:([a-zA-Z0-9_\\\\]+)(?:,(.*))?\}$/', $full, $m ) ) {
             $function = $m[1];
 
-            if ( ! in_array( $function, $allowed_functions, true ) ) {
+            if ( ! in_array( $function, $whitelisted_functions, true ) ) {
                 return '';
             }
 
             $args = isset( $m[2] ) ? array_map( 'trim', explode( ',', $m[2] ) ) : [];
-            $args = array_map( function( $arg ) use ( &$allowed_functions, &$cache ) {
+            $args = array_map( function( $arg ) use ( &$whitelisted_functions, &$cache ) {
                 return anys_parse_dynamic_value( $arg, $cache );
             }, $args );
 
@@ -369,15 +369,15 @@ function anys_parse_dynamic_attributes( $atts ) {
 }
 
 /**
- * Gets the allowed functions list.
+ * Gets the whitelisted functions list.
  *
  * @since 1.1.0
  *
- * @return array The list of allowed function names.
+ * @return array The list of whitelisted function names.
  */
-function anys_get_allowed_functions() {
-    // Default allowed functions.
-    $default_functions = anys_get_default_allowed_functions();
+function anys_get_whitelisted_functions() {
+    // Default whitelisted functions.
+    $default_functions = anys_get_default_whitelisted_functions();
 
     // Get user-defined functions from settings.
     $options        = get_option( 'anys_settings' );
@@ -389,19 +389,19 @@ function anys_get_allowed_functions() {
     $all_functions = array_unique( array_merge( $default_functions, $user_functions ) );
 
     // Keep only existing functions.
-    $allowed_functions = array_filter( $all_functions, 'function_exists' );
+    $whitelisted_functions = array_filter( $all_functions, 'function_exists' );
 
-    return $allowed_functions;
+    return $whitelisted_functions;
 }
 
 /**
- * Gets the default allowed functions list.
+ * Gets the default whitelisted functions list.
  *
  * @since 1.1.0
  *
- * @return array The list of default allowed function names.
+ * @return array The list of default whitelisted function names.
  */
-function anys_get_default_allowed_functions() {
+function anys_get_default_whitelisted_functions() {
     $default_functions = [
         'abs',
         'ceil',
@@ -452,5 +452,5 @@ function anys_get_default_allowed_functions() {
         'get_locale',
     ];
 
-    return apply_filters( 'anys/default_allowed_functions', $default_functions );
+    return apply_filters( 'anys/default_whitelisted_functions', $default_functions );
 }

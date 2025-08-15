@@ -90,9 +90,9 @@ final class Settings_Page {
 
         // Whitelist Functions field.
         add_settings_field(
-            'anys_allowed_functions',
-            esc_html__( 'Allowed Functions', 'anys' ),
-            [ $this, 'allowed_functions_callback' ],
+            'anys_whitelisted_functions',
+            esc_html__( 'Whitelisted Functions', 'anys' ),
+            [ $this, 'whitelisted_functions_callback' ],
             'anys-settings',
             'anys_functions_section'
         );
@@ -111,14 +111,14 @@ final class Settings_Page {
         $output = [];
 
         // Sanitizes whitelist textarea into trimmed array of function names.
-        if ( isset( $input['anys_allowed_functions'] ) ) {
-            $functions = explode( "\n", sanitize_textarea_field( $input['anys_allowed_functions'] ) );
+        if ( isset( $input['anys_whitelisted_functions'] ) ) {
+            $functions = explode( "\n", sanitize_textarea_field( $input['anys_whitelisted_functions'] ) );
             $functions = array_map( 'trim', $functions );
             $functions = array_filter( $functions ); // Remove empty lines
 
-            $output['anys_allowed_functions'] = $functions;
+            $output['anys_whitelisted_functions'] = $functions;
         } else {
-            $output['anys_allowed_functions'] = [];
+            $output['anys_whitelisted_functions'] = [];
         }
 
         return $output;
@@ -136,33 +136,33 @@ final class Settings_Page {
     }
 
     /**
-     * Renders the Allowed Functions textarea field.
+     * Renders the Whitelisted Functions textarea field.
      *
      * @since 1.1.0
      */
-    public function allowed_functions_callback() {
+    public function whitelisted_functions_callback() {
         $options           = get_option( 'anys_settings' );
-        $allowed_functions = isset( $options['anys_allowed_functions'] ) && is_array( $options['anys_allowed_functions'] )
-            ? $options['anys_allowed_functions']
+        $whitelisted_functions = isset( $options['anys_whitelisted_functions'] ) && is_array( $options['anys_whitelisted_functions'] )
+            ? $options['anys_whitelisted_functions']
             : [];
 
-        // Gets the default allowed functions list as an array.
-        $default_allowed_functions = anys_get_default_allowed_functions();
+        // Gets the default whitelisted functions list as an array.
+        $default_whitelisted_functions = anys_get_default_whitelisted_functions();
 
         // Converts array to a comma-separated string for display.
-        $default_allowed_functions_list = implode( ', ', $default_allowed_functions );
+        $default_whitelisted_functions_list = implode( ', ', $default_whitelisted_functions );
         ?>
         <textarea
-            id="anys_allowed_functions"
-            name="anys_settings[anys_allowed_functions]"
+            id="anys_whitelisted_functions"
+            name="anys_settings[anys_whitelisted_functions]"
             rows="7"
             cols="50"
             placeholder="<?php esc_attr_e( 'Enter one function name per line', 'anys' ); ?>"
-        ><?php echo esc_textarea( implode( "\n", $allowed_functions ) ); ?></textarea>
+        ><?php echo esc_textarea( implode( "\n", $whitelisted_functions ) ); ?></textarea>
         <p class="description">
             <?php printf(
-                esc_html__( 'Enter function names allowed for [anys] shortcode. One per line. Default allowed functions (%s)', 'anys' ),
-                $default_allowed_functions_list
+                esc_html__( 'Enter function names whitelisted for [anys] shortcode. One per line. Default whitelisted functions (%s)', 'anys' ),
+                $default_whitelisted_functions_list
             ); ?>
         </p>
         <?php

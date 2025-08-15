@@ -249,7 +249,7 @@ function anys_wrap_output( $value, $attributes = [] ) {
  * - {get:param}
  * - {post:param}
  * - {func:function,arg1,arg2}
- * - {shortcode:[tag]}
+ * - {shortcode:(tag)}
  * - {const:NAME}
  *
  * @param string|array $value Attribute value or array of values.

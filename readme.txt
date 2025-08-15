@@ -194,5 +194,14 @@ Yes — all values are escaped using `wp_kses_post()` by default.
 
 == Changelog ==
 
-= 1.0.0 =
-* Initial release.
+= 1.1.0 - 2025-08-15 =
+- Added Function type.
+- Added Settings page.
+- Added Whitelisted Functions setting for better security control.
+- Added more formats (json, serialize, unserialize, print_r, var_export, implode, keys, capitalize, uppercase, lowercase, strip_tags, values, keys_values).
+- Improved shortcode registration for future shortcodes.
+- Improved hooks naming conventions.
+- Improved docs.
+
+= 1.0.0 - 2025-08-04 =
+- Initial release.

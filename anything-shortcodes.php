@@ -3,7 +3,7 @@
  * Plugin Name: Anything Shortcodes
  * Plugin URI: https://wordpress.org/plugins/anything-shortcodes
  * Description: Get and display anything in WordPress with shortcode.
- * Version: 1.0.0
+ * Version: 1.1.0
  * Author: WPizard
  * Author URI: https://wpizard.com/
  * Text Domain: anys
@@ -78,7 +78,7 @@ final class Plugin {
     protected function define_constants() {
         define( 'ANYS_NAME', esc_html__( 'Anything Shortcodes', 'anys' ) );
         define( 'ANYS_SLUG', 'anys' );
-        define( 'ANYS_VERSION', '1.0.0' );
+        define( 'ANYS_VERSION', '1.1.0' );
 
         define( 'ANYS_PATH', wp_normalize_path( trailingslashit( plugin_dir_path( __FILE__ ) ) ) );
         define( 'ANYS_INCLUDES_PATH', ANYS_PATH . 'includes/' );

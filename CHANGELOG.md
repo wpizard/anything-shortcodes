@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.0] - 2025-09-29
+- Added Term Field type.
+
 ## [1.1.0] - 2025-08-15
 - Added Function type.
 - Added Settings page.

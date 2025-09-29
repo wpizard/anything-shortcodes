@@ -3,9 +3,10 @@
 A powerful WordPress plugin that lets you retrieve and display virtually any data in WordPress using simple shortcodes. Effortlessly pull information from posts, users, options, and more — with support for dynamic attribute parsing, flexible formatting, and customizable output wrapping.
 
 It supports:
-- Post fields
+- Post field
 - Post meta
-- User fields
+- Term field
+- User field
 - User meta
 - Options
 - Functions (whitelisted)
@@ -30,6 +31,7 @@ You can also:
   - [Supported Types and Examples](#supported-types-and-examples)
     - [Post Field](#post-field)
     - [Post Meta](#post-meta)
+    - [Term Field](#term-field)
     - [User Field](#user-field)
     - [User Meta](#user-meta)
     - [Option](#option)
@@ -87,6 +89,27 @@ Retrieve post meta by key.
 | `name="my_meta_key"` | `[anys type="post-meta" name="my_meta_key"]` |
 | `name="price"` | `[anys type="post-meta" name="price" id="456" format="number"]` |
 | `name="release_date"` | `[anys type="post-meta" name="release_date" format="date"]` |
+
+### Term Field
+Retrieve standard term fields by name.
+
+### Term Field
+Retrieve standard term fields by name.
+
+| Attribute | Example |
+|-----------|---------|
+| `name="name"` | `[anys type="term-field" name="name"]` |
+| `name="slug"` | `[anys type="term-field" name="slug"]` |
+| `name="term_id"` | `[anys type="term-field" name="term_id" id="15"]` |
+| `name="taxonomy"` | `[anys type="term-field" name="taxonomy" id="15"]` |
+| `name="description"` | `[anys type="term-field" name="description" fallback="No description"]` |
+| `name="count"` | `[anys type="term-field" name="count" id="15" format="number"]` |
+
+Other fields supported: `term_group`, `parent`
+
+**Notes**
+- If no `id` is provided, it defaults to the current queried term (e.g., category/tag archive page).
+- Supports `before`, `after`, `fallback`, and `format` (for number, date, etc.).
 
 ### User Field
 Retrieve user standard fields.

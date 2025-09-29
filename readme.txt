@@ -4,7 +4,7 @@ Tags: shortcode, post, post meta, user, options
 Requires at least: 5.0
 Tested up to: 6.8.2
 Requires PHP: 7.4
-Stable tag: 1.1.0
+Stable tag: 1.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -15,9 +15,10 @@ Retrieve and display any WordPress data with shortcodes — posts, users, option
 A powerful WordPress plugin that lets you retrieve and display virtually any data in WordPress using simple shortcodes. Effortlessly pull information from posts, users, options, and more — with support for dynamic attribute parsing, flexible formatting, and customizable output wrapping.
 
 It supports:
-- Post fields
+- Post field
 - Post meta
-- User fields
+- Term field
+- User field
 - User meta
 - Options
 - Functions (whitelisted)
@@ -59,63 +60,81 @@ You can also:
 **Post Field**
 Retrieve standard post fields by name.
 
-| Attribute | Example |
-|-----------|---------|
-| `name="post_title"` | `[anys type="post-field" name="post_title"]` |
-| `name="post_date"` | `[anys type="post-field" name="post_date" format="date"]` |
-| `name="post_author"` | `[anys type="post-field" name="post_author" id="123"]` |
-| `name="post_content"` | `[anys type="post-field" name="post_content" fallback="No content"]` |
+Examples:
 
-Other fields supported: ID, post_name, post_excerpt, post_status, comment_status, ping_status, post_password, post_parent, menu_order, guid, post_type, post_mime_type, post_modified, post_modified_gmt
+- `[anys type="post-field" name="post_title"]` — Shows the post title.
+- `[anys type="post-field" name="post_date" format="date"]` — Shows the post publish date (formatted).
+- `[anys type="post-field" name="post_author" id="123"]` — Shows the author ID of post `123`.
+- `[anys type="post-field" name="post_content" fallback="No content"]` — Shows the post content or fallback text.
+
+Other fields supported: `ID`, `post_name`, `post_excerpt`, `post_status`, `comment_status`, `ping_status`, `post_password`, `post_parent`, `menu_order`, `guid`, `post_type`, `post_mime_type`, `post_modified`, `post_modified_gmt`
 
 **Post Meta**
 Retrieve post meta by key.
 
-| Attribute | Example |
-|-----------|---------|
-| `name="my_meta_key"` | `[anys type="post-meta" name="my_meta_key"]` |
-| `name="price"` | `[anys type="post-meta" name="price" id="456" format="number"]` |
-| `name="release_date"` | `[anys type="post-meta" name="release_date" format="date"]` |
+Examples:
+
+- `[anys type="post-meta" name="my_meta_key"]` — Shows value of `my_meta_key`.
+- `[anys type="post-meta" name="price" id="456" format="number"]` — Shows the `price` of post `456`, formatted as number.
+- `[anys type="post-meta" name="release_date" format="date"]` — Shows release date formatted as date.
+
+**Term Field**
+Retrieve standard term fields by name.
+
+Examples:
+
+- `[anys type="term-field" name="name"]` — Shows the term name.
+- `[anys type="term-field" name="slug"]` — Shows the term slug.
+- `[anys type="term-field" name="term_id" id="15"]` — Shows the ID of term `15`.
+- `[anys type="term-field" name="taxonomy" id="15"]` — Shows the taxonomy of term `15`.
+- `[anys type="term-field" name="description" fallback="No description"]` — Shows term description or fallback text.
+- `[anys type="term-field" name="count" id="15" format="number"]` — Shows the number of posts in term `15`.
+
+Other fields supported: `term_group`, `parent`
+
+Notes:
+- If no "id" is provided, it defaults to the current queried term (e.g., category/tag archive page).
+- Supports "before", "after", "fallback", and "format" (for number, date, etc.).
 
 **User Field**
 Retrieve user standard fields.
 
-| Attribute | Example |
-|-----------|---------|
-| `name="user_email"` | `[anys type="user-field" name="user_email" id="12"]` |
-| `name="display_name"` | `[anys type="user-field" name="display_name"]` |
-| `name="user_registered"` | `[anys type="user-field" name="user_registered" format="date"]` |
+Examples:
 
-Common user fields: ID, user_login, user_nicename, user_url, user_activation_key, user_status, description
+- `[anys type="user-field" name="user_email" id="12"]` — Shows email of user `12`.
+- `[anys type="user-field" name="display_name"]` — Shows current user display name.
+- `[anys type="user-field" name="user_registered" format="date"]` — Shows user registration date.
+
+Common user fields: `ID`, `user_login`, `user_nicename`, `user_url`, `user_activation_key`, `user_status`, `description`
 
 **User Meta**
 Retrieve user meta by key.
 
-| Attribute | Example |
-|-----------|---------|
-| `name="favorite_color"` | `[anys type="user-meta" name="favorite_color" id="12"]` |
-| `name="profile_phone"` | `[anys type="user-meta" name="profile_phone"]` |
+Examples:
+
+- `[anys type="user-meta" name="favorite_color" id="12"]` — Shows favorite_color of user `12`.
+- `[anys type="user-meta" name="profile_phone"]` — Shows current user’s phone.
 
 **Option**
 Retrieve WordPress option values.
 
-| Attribute | Example |
-|-----------|---------|
-| `name="blogname"` | `[anys type="option" name="blogname"]` |
-| `name="admin_email"` | `[anys type="option" name="admin_email"]` |
+Examples:
+
+- `[anys type="option" name="blogname"]` — Shows site title.
+- `[anys type="option" name="admin_email"]` — Shows site admin email.
 
 **Function**
 Execute a whitelisted PHP function and optionally pass arguments.
 
-| Attribute | Example |
-|-----------|---------|
-| `name="date_i18n, F j, Y"` | `[anys type="function" name="date_i18n, F j, Y"]` |
-| `name="sanitize_text_field, (anys type='option' name='blogdescription')"` | `[anys type="function" name="sanitize_text_field, (anys type='option' name='blogdescription')"]` |
-| `before="Today is "` | `[anys type="function" name="date_i18n, F j, Y" before="Today is "]` |
-| `after="."` | `[anys type="function" name="date_i18n, F j, Y" after="."]` |
-| `fallback="N/A"` | `[anys type="function" name="my_custom_function" fallback="N/A"]` |
-| `format="capitalize"` | `[anys type="function" name="my_custom_function" format="capitalize"]` |
-| `delimiter=", "` | `[anys type="function" name="my_custom_function" delimiter=", "]` |
+Examples:
+
+- `[anys type="function" name="date_i18n, F j, Y"]` — Shows today’s date.
+- `[anys type="function" name="sanitize_text_field, (anys type='option' name='blogdescription')"]` — Sanitizes and shows site description.
+- `[anys type="function" name="date_i18n, F j, Y" before="Today is "]` — Shows today’s date with custom prefix.
+- `[anys type="function" name="date_i18n, F j, Y" after="."]` — Shows today’s date with custom suffix.
+- `[anys type="function" name="my_custom_function" fallback="N/A"]` — Shows output of custom function or fallback.
+- `[anys type="function" name="my_custom_function" format="capitalize"]` — Shows output of custom function and automatically capitalizes the output (e.g., "hello world" → "Hello World").
+- `[anys type="function" name="my_custom_function" delimiter=", "]` — Shows output of custom function. If the function returns an array, the values are joined using the given delimiter (e.g., `["apple", "banana"]` → "apple, banana").
 
 Notes:
 - Only functions whitelisted in plugin settings can be executed.
@@ -193,6 +212,9 @@ Yes — `{get:param_name}` will be replaced with the value from the query string
 Yes — all values are escaped using `wp_kses_post()` by default.
 
 == Changelog ==
+
+= [1.2.0] - 2025-09-29 =
+- Added Term Field type.
 
 = 1.1.0 - 2025-08-15 =
 - Added Function type.

@@ -93,9 +93,6 @@ Retrieve post meta by key.
 ### Term Field
 Retrieve standard term fields by name.
 
-### Term Field
-Retrieve standard term fields by name.
-
 | Attribute | Example |
 |-----------|---------|
 | `name="name"` | `[anys type="term-field" name="name"]` |

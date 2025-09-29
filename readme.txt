@@ -213,7 +213,7 @@ Yes — all values are escaped using `wp_kses_post()` by default.
 
 == Changelog ==
 
-= [1.2.0] - 2025-09-29 =
+= 1.2.0 - 2025-09-29 =
 - Added Term Field type.
 
 = 1.1.0 - 2025-08-15 =

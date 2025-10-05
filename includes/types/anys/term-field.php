@@ -11,7 +11,7 @@
  * - fallback: Fallback content if the value is empty (optional)
  * - format: Formatting for date, number, etc. (optional)
  *
- * @since 1.0.0
+ * @since 1.2.0
  */
 
 defined( 'ABSPATH' ) || die();

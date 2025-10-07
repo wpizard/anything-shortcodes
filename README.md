@@ -165,7 +165,7 @@ Notes:
 - Arguments can include other `[anys]` shortcodes using `()` instead of `[]`.
 - Output can be formatted or wrapped with `before`/`after` content and fallback.
 
-== Dynamic Attribute Parsing ==
+## Dynamic Attribute Parsing
 Supports dynamic placeholders inside attribute values:
 - `{get:param}` — gets value from $_GET['param']
 - `{post:param}` — gets value from $_POST['param']
@@ -178,7 +178,7 @@ Example:
 [anys type="post_field" name="post_title" id="{get:post_id}" before="Title: "]
 ```
 
-== Formatting Options ==
+## Formatting Options
 - `date` — Format timestamps using WordPress date format.
 - `datetime` — Format timestamps using WordPress date and time format.
 - `number` — Localized number format.

@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.0] - 2025-10-07
+- Added Link type.
+
 ## [1.2.0] - 2025-09-29
 - Added Term Field type.
 

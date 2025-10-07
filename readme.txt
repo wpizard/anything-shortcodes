@@ -15,20 +15,22 @@ Retrieve and display any WordPress data with shortcodes — posts, users, option
 A powerful WordPress plugin that lets you retrieve and display virtually any data in WordPress using simple shortcodes. Effortlessly pull information from posts, users, options, and more — with support for dynamic attribute parsing, flexible formatting, and customizable output wrapping.
 
 It supports:
-- Post field
-- Post meta
-- Term field
-- User field
-- User meta
-- Options
-- Functions (whitelisted)
-- Nested shortcodes inside attributes
-- URL parameters as values
+- Post Field
+- Post Meta
+- Term Field
+- Term Meta (coming soon)
+- User Field
+- User Meta
+- Link
+- Option
+- Function (whitelisted)
 
 You can also:
 - Apply custom formatting (date, datetime, number, capitalize, uppercase, lowercase, strip_tags, etc.)
 - Add before/after text
 - Use fallback values
+- Use nested shortcodes inside attributes
+- Use URL parameters as values
 - Cache output
 - Secure and sanitize output
 
@@ -115,6 +117,40 @@ Examples:
 - `[anys type="user-meta" name="favorite_color" id="12"]` — Shows favorite_color of user `12`.
 - `[anys type="user-meta" name="profile_phone"]` — Shows current user’s phone.
 
+**Link**
+Retrieve URLs or generate link anchors for common WordPress locations.
+
+Examples:
+
+- `[anys type="link" name="logout"]` — Returns the logout URL.
+- `[anys type="link" name="logout" redirect="/"]` — Returns the logout URL and redirects to home after logout.
+- `[anys type="link" name="login" redirect="/dashboard"]` — Returns the login URL with redirect to `/dashboard`.
+- `[anys type="link" name="register"]` — Returns the registration URL.
+- `[anys type="link" name="home"]` — Returns the home page URL.
+- `[anys type="link" name="siteurl"]` — Returns the main site URL.
+- `[anys type="link" name="admin"]` — Returns the WordPress admin URL.
+- `[anys type="link" name="profile"]` — Returns the user profile page URL.
+- `[anys type="link" name="post" id="123"]` — Returns the permalink for post with ID `123`.
+- `[anys type="link" name="term" id="45"]` — Returns the archive link for term with ID `45`.
+- `[anys type="link" name="current"]` — Returns the current page URL.
+- `[anys type="link" name="auth"]` — Dynamically returns the login or logout URL based on user status.
+
+Formatting options:
+
+- `[anys type="link" name="logout" format="anchor"]` — Outputs a clickable link: `<a href="...">Logout</a>`.
+- `[anys type="link" name="auth" format="anchor"]` — Dynamically shows Login or Logout link depending on user state.
+- `[anys type="link" name="auth" format="anchor" label_logged_in="Sign Out" label_logged_out="Sign In"]` — Customizes labels for both states.
+
+Attributes supported:
+- `name`: The link type (e.g., `logout`, `login`, `home`, `admin`, etc.).
+- `redirect`: Optional redirect URL (used for login/logout links).
+- `format`: Either `url` (default) or `anchor` for clickable links.
+- `target`: Optional anchor target (e.g., `_blank`).
+- `label`: Optional link text (default varies by type).
+- `label_logged_in`: Custom label when the user is logged in (used with `auth`).
+- `label_logged_out`: Custom label when the user is logged out (used with `auth`).
+- `id`: Used for post and term links.
+
 **Option**
 Retrieve WordPress option values.
 
@@ -181,6 +217,7 @@ Custom formats are supported via filters.
 - `anys/{type}/attributes` — Filter attributes dynamically by type.
 - `anys/output` — Filter final output.
 - `anys/{type}/output` — Filter output dynamically by type.
+- `anys/link/handlers` - Filter link handlers.
 
 **Actions**
 - `anys/output/before` — Fires before output.

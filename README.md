@@ -36,7 +36,7 @@ You can also:
 ```
 
 **Attributes:**
-- `type` — `post-field`, `post-meta`, `user-field`, `user-meta`, `option`, `function` (required)
+- `type` — `post-field`, `post-meta`, `user-field`, `user-meta`, `link`, `option`, `function` (required)
 - `name` — The field name, meta key, option name, or function call (required)
 - `id` — Post ID or User ID (optional; defaults to current context)
 - `before` — Text to prepend before output (optional)

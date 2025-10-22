@@ -9,7 +9,7 @@
  * @package BS5PC
  */
 
-namespace BS5PC;
+namespace AnyS;
 
 defined( 'ABSPATH' ) || die();
 

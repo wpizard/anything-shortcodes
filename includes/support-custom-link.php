@@ -2,7 +2,7 @@
 /**
  * Support Custom Link Class.
  *
- * Handles custom shortcode processing for navigation menu URLs.
+ * Handles custom shortcode processing for navigation menu URLs and Link Text.
  *
  * @since 1.0.0
  *
@@ -63,7 +63,7 @@ final class Support_Custom_Link {
     }
 
     /**
-     * Processes shortcodes in menu item URLs.
+     * Processes shortcodes in menu item URLs and Link Text.
      *
      * @since 1.0.0
      *
@@ -73,27 +73,44 @@ final class Support_Custom_Link {
      */
     public function process_menu_shortcodes( $items ) {
         foreach ( $items as $item ) {
-            // Check pattern: starts with #shortcode? and ends with #
+            // Process URL shortcodes (unchanged)
             if ( strpos( $item->url, '#shortcode?' ) === 0 && substr( $item->url, -1 ) === '#' ) {
-                // Extract encoded shortcode (between ? and #)
                 $encoded_shortcode = substr( $item->url, 11, -1 );
-
-                // Decode to normal shortcode (e.g., [anys type="link" name="logout"])
                 $shortcode = urldecode( $encoded_shortcode );
 
-                // Basic check to ensure it's a valid shortcode (starts with [ and ends with ])
+                // Basic check to ensure it's a valid shortcode
                 if ( strpos( $shortcode, '[' ) === 0 && substr( $shortcode, -1 ) === ']' ) {
-                    // Execute the shortcode
                     $shortcode_output = do_shortcode( $shortcode );
 
-                    // If output is non-empty and a valid URL, replace the item URL
                     if ( ! empty( $shortcode_output ) && filter_var( $shortcode_output, FILTER_VALIDATE_URL ) ) {
                         $item->url = esc_url( $shortcode_output );
                     } else {
-                        // Log for debugging if there's an issue
                         error_log( sprintf(
                             /* translators: %1$s: Shortcode, %2$s: Shortcode output */
                             __( 'Invalid shortcode output in menu: %1$s - Output: %2$s', 'anys' ),
+                            $shortcode,
+                            $shortcode_output
+                        ) );
+                    }
+                }
+            }
+
+            // Process Link Text shortcodes
+            if ( strpos( $item->title, '[' ) === 0 && substr( $item->title, -1 ) === ']' ) {
+                $shortcode = $item->title;
+
+                // Validate shortcode format
+                if ( preg_match( '/^\[([a-zA-Z0-9_-]+)(?:\s+[^]]*?)?\]$/', $shortcode ) ) {
+                    $shortcode_output = do_shortcode( $shortcode );
+
+                    if ( ! empty( $shortcode_output ) ) {
+                        $item->title = esc_html( $shortcode_output );
+                    } else {
+                        // Fallback to post_title or empty string
+                        $item->title = esc_html( $item->post_title ?? '' );
+                        error_log( sprintf(
+                            /* translators: %1$s: Shortcode, %2$s: Shortcode output */
+                            __( 'Invalid shortcode output in menu Link Text: %1$s - Output: %2$s', 'anys' ),
                             $shortcode,
                             $shortcode_output
                         ) );

@@ -1,23 +1,30 @@
 <?php
-/**
- * Support Custom Link Class.
- *
- * @since 1.4.0
- */
 
 namespace AnyS;
 
 defined( 'ABSPATH' ) || die();
 
+/**
+ * Support Custom Link Class.
+ *
+ * @since NEXT
+ */
 final class Nav_Menu {
 
     /**
-     * @since 1.4.0
-     * @var Nav_Menu
+     * The instance.
+     *
+     * @since NEXT
      */
     private static $instance;
 
-    /** @since 1.4.0 */
+    /**
+     * Returns the instance.
+     *
+     * @since NEXT
+     *
+     * @return Nav_Menu
+     */
     public static function get_instance() {
         if ( is_null( self::$instance ) ) {
             self::$instance = new self();
@@ -25,12 +32,20 @@ final class Nav_Menu {
         return self::$instance;
     }
 
-    /** @since 1.4.0 */
+    /**
+     * Constructor.
+     *
+     * @since NEXT
+     */
     private function __construct() {
         $this->add_hooks();
     }
 
-    /** @since 1.4.0 */
+    /**
+     * Adds hooks.
+     *
+     * @since NEXT
+     */
     protected function add_hooks() {
         add_filter( 'wp_nav_menu_objects', [ $this, 'process_menu_shortcodes' ] );
         add_action( 'wp_nav_menu_item_custom_fields', [ $this, 'admin_menu_item_preview' ], 10, 4 );
@@ -39,7 +54,7 @@ final class Nav_Menu {
     /**
      * Process shortcodes in menu URLs and titles (frontend/admin render).
      *
-     * @since 1.4.0
+     * @since NEXT
      *
      * @param array $items Menu items.
      * @return array
@@ -67,13 +82,8 @@ final class Nav_Menu {
                     $output = do_shortcode( $shortcode );
                     $raw    = trim( wp_strip_all_tags( (string) $output ) );
 
-                    if ( empty( $raw ) || ! filter_var( $raw, FILTER_VALIDATE_URL ) ) {
-                        error_log( sprintf(
-                            __( 'Invalid shortcode output in menu URL: %1$s - Output: %2$s', 'anys' ),
-                            $shortcode,
-                            (string) $output
-                        ) );
-                    } else {
+                    if ( ! empty( $raw ) && filter_var( $raw, FILTER_VALIDATE_URL ) ) {
+                        // If the shortcode output is a valid URL, assign it
                         $item->url = esc_url( $raw );
                     }
                 }
@@ -81,6 +91,7 @@ final class Nav_Menu {
 
             // Title shortcode
             $title = isset( $item->title ) ? (string) $item->title : '';
+
             if ( strpos( $title, '[' ) === 0 && substr( $title, -1 ) === ']' ) {
                 if ( preg_match( '/^\[([a-zA-Z0-9_-]+)(?:\s+[^]]*?)?\]$/', $title ) !== 1 ) {
                     continue;
@@ -89,11 +100,6 @@ final class Nav_Menu {
                 $output = do_shortcode( $title );
                 if ( empty( $output ) ) {
                     $item->title = esc_html( $item->post_title ?? '' );
-                    error_log( sprintf(
-                        __( 'Invalid shortcode output in menu title: %1$s - Output: %2$s', 'anys' ),
-                        $title,
-                        (string) $output
-                    ) );
                     continue;
                 }
 
@@ -107,7 +113,7 @@ final class Nav_Menu {
     /**
      * Admin preview under menu item fields (does not change saved values).
      *
-     * @since 1.4.0
+     * @since NEXT
      *
      * @param int     $item_id
      * @param \WP_Post $item
@@ -119,6 +125,7 @@ final class Nav_Menu {
             return;
         }
         $screen = get_current_screen();
+
         if ( ! $screen || $screen->base !== 'nav-menus' ) {
             return;
         }
@@ -126,6 +133,7 @@ final class Nav_Menu {
         // Title preview
         $title_preview = '';
         $title_raw     = (string) $item->title;
+        
         if ( strpos( $title_raw, '[' ) === 0 && substr( $title_raw, -1 ) === ']' && preg_match( '/^\[[^\]]+\]$/', $title_raw ) ) {
             $out = do_shortcode( $title_raw );
             if ( $out !== '' && $out !== null ) {
@@ -163,5 +171,5 @@ final class Nav_Menu {
     }
 }
 
-/** @since 1.4.0 */
+/** @since NEXT */
 Nav_Menu::get_instance();

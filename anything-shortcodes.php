@@ -150,10 +150,10 @@ final class Plugin {
      * @since 1.1.0 Changes file name.
      */
     public function load_dependencies() {
-        require_once ANYS_INCLUDES_PATH . 'nav-menu.php';
         require_once ANYS_INCLUDES_PATH . 'utilities.php';
         require_once ANYS_INCLUDES_PATH . 'settings-page.php';
         require_once ANYS_INCLUDES_PATH . 'register-shortcodes.php';
+        require_once ANYS_INCLUDES_PATH . 'nav-menu.php';
     }
 }
 

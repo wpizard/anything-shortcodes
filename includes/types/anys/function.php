@@ -36,47 +36,53 @@ if ( ! $function ) {
     return '';
 }
 
-if ( ! function_exists( $function ) ) {
-    if ( current_user_can( 'manage_options' ) ) {
-        echo sprintf(
-            /* translators: %s is the function name */
-            esc_html__( 'Function "%s" does not exist.', 'anys' ),
-            esc_html( $function )
-        );
-    }
-
-    return '';
-}
-
-if ( ! in_array( $function, $whitelisted_functions, true ) ) {
-    if ( current_user_can( 'manage_options' ) ) {
-        $settings_url = admin_url( 'options-general.php?page=anys-settings' );
-        printf(
-            /* translators: %1$s is the function name, %2$s is the settings page URL */
-            esc_html__( 'Function "%1$s" is not whitelisted. Please %2$s.', 'anys' ),
-            esc_html( $function ),
-            sprintf(
-                '<a href="%s">%s</a>',
-                esc_url( $settings_url ),
-                esc_html__( 'add it to whitelisted Functions in settings', 'anys' )
-            )
-        );
-    }
-
-    return '';
-}
-
+// Parse dynamic placeholders inside arguments
 $args = array_map( function( $arg ) {
     return anys_parse_dynamic_value( $arg, $cache );
 }, $parts );
 
-$value = call_user_func_array( $function, $args );
+// Normalize callable and args based on attributes (e.g., calendar="jalali")
+[ $callable, $final_args, $final_attributes ] = anys_resolve_function_call( $function, $args, $attributes );
+
+if ( is_string( $callable ) ) {
+    if ( ! function_exists( $callable ) ) {
+        if ( current_user_can( 'manage_options' ) ) {
+            echo sprintf(
+                /* translators: %s is the function name */
+                esc_html__( 'Function "%s" does not exist.', 'anys' ),
+                esc_html( $callable )
+            );
+        }
+
+        return '';
+    }
+
+    if ( ! in_array( $callable, $whitelisted_functions, true ) ) {
+        if ( current_user_can( 'manage_options' ) ) {
+            $settings_url = admin_url( 'options-general.php?page=anys-settings' );
+            printf(
+                /* translators: %1$s is the function name, %2$s is the settings page URL */
+                esc_html__( 'Function "%1$s" is not whitelisted. Please %2$s.', 'anys' ),
+                esc_html( $callable ),
+                sprintf(
+                    '<a href="%s">%s</a>',
+                    esc_url( $settings_url ),
+                    esc_html__( 'add it to whitelisted Functions in settings', 'anys' )
+                )
+            );
+        }
+
+        return '';
+    }
+}
+
+$value = call_user_func_array( $callable, $final_args );
 
 // Applies formatting if specified.
-$value = anys_format_value( $value, $attributes );
+$value = anys_format_value( $value, $final_attributes );
 
 // Wraps the output with before/after content and fallback.
-$output = anys_wrap_output( $value, $attributes );
+$output = anys_wrap_output( $value, $final_attributes );
 
 // Outputs the sanitized content.
 echo wp_kses_post( $output );

@@ -16,6 +16,19 @@ namespace AnyS;
 defined( 'ABSPATH' ) or die();
 
 /**
+ * Load Composer autoloader if available.
+ *
+ * Ensures all external dependencies (e.g., Morilog\Jalali)
+ * are properly registered before plugin initialization.
+ *
+ * @since NEXT
+ */
+$autoload = __DIR__ . '/vendor/autoload.php';
+if ( file_exists( $autoload ) ) {
+    require_once $autoload;
+}
+
+/**
  * Anything Shortcodes class.
  *
  * @since 1.0.0

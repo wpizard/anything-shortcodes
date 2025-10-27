@@ -463,6 +463,7 @@ function anys_get_default_whitelisted_functions() {
  * @param string $shortcode Single-tag shortcode (e.g. "[anys ...]").
  * @param string $attr      Attribute name.
  * @param string $value     Attribute value.
+ *
  * @return string Modified shortcode string.
  */
 function anys_force_shortcode_attr( $shortcode, $attr, $value ) {
@@ -481,4 +482,21 @@ function anys_force_shortcode_attr( $shortcode, $attr, $value ) {
     }
 
     return $shortcode;
+}
+
+/**
+ * Checks if content has any shortcode.
+ *
+ * @since NEXT
+ *
+ * @param string $content The content to check.
+ *
+ * @return bool True if any shortcode exists, false otherwise.
+ */
+function anys_has_shortcode( $content ) {
+    if ( preg_match( '/\[[a-zA-Z0-9_]+[^\]]*\]/', $content ) ) {
+        return true;
+    }
+
+    return false;
 }

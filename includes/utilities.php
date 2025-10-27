@@ -492,23 +492,23 @@ function anys_force_shortcode_attr( $shortcode, $attr, $value ) {
  * @param string $function   Requested function name.
  * @param array  $args       Requested args (already parsed).
  * @param array  $attributes Shortcode attributes (parsed).
- * 
+ *
  * @return array [callable|string, array, array] Callable, args, modified attributes
  *
  * @since NEXT
  */
 function anys_resolve_function_call( $function, array $args, array $attributes ) {
-    $fn     = (string) $function;
+    $target_function = (string) $function;
     $format = isset( $attributes['format'] ) ? strtolower( trim( (string) $attributes['format'] ) ) : '';
 
     // Returns early if not Jalali format.
     if ( $format === '' || stripos( $format, 'jalali' ) !== 0 ) {
-        return [ $fn, $args, $attributes ];
+        return [ $target_function, $args, $attributes ];
     }
 
     // Handles Jalali only if function is date_i18n and Jalali library exists.
-    if ( strtolower( $fn ) !== 'date_i18n' || ! class_exists( '\Morilog\Jalali\Jalalian' ) ) {
-        return [ $fn, $args, $attributes ];
+    if ( strtolower( $target_function ) !== 'date_i18n' || ! class_exists( '\Morilog\Jalali\Jalalian' ) ) {
+        return [ $target_function, $args, $attributes ];
     }
 
     // Determines the Jalali format pattern.
@@ -518,23 +518,23 @@ function anys_resolve_function_call( $function, array $args, array $attributes )
         $pattern = (string) ( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ) );
     } else {
         // Returns original values if format is not recognized.
-        return [ $fn, $args, $attributes ];
+        return [ $target_function, $args, $attributes ];
     }
 
     // Extracts timestamp argument or uses current time.
-    $ts = isset( $args[1] ) && is_numeric( $args[1] )
+    $timestamp = isset( $args[1] ) && is_numeric( $args[1] )
         ? (int) $args[1]
         : (int) current_time( 'timestamp' );
 
     // Builds callable closure to replace date_i18n with Jalali formatting.
-    $callable = static function( $fmt, $timestamp ) {
+    $callable = static function( $fmt, $ts ) {
         $tz = wp_timezone();
-        $dt = ( new DateTimeImmutable( '@' . (int) $timestamp ) )->setTimezone( $tz );
+        $dt = ( new DateTimeImmutable( '@' . (int) $ts ) )->setTimezone( $tz );
         return \Morilog\Jalali\Jalalian::fromDateTime( $dt )->format( (string) $fmt );
     };
 
     // Prepares final callable arguments.
-    $final_args = [ $pattern, $ts ];
+    $final_args = [ $pattern, $timestamp ];
 
     return [ $callable, $final_args, $attributes ];
 }

@@ -454,3 +454,49 @@ function anys_get_default_whitelisted_functions() {
 
     return apply_filters( 'anys/default_whitelisted_functions', $default_functions );
 }
+
+/**
+ * Forces or overrides a single shortcode attribute.
+ *
+ * @since NEXT
+ *
+ * @param string $shortcode Single-tag shortcode (e.g. "[anys ...]").
+ * @param string $attr      Attribute name.
+ * @param string $value     Attribute value.
+ *
+ * @return string Modified shortcode string.
+ */
+function anys_force_shortcode_attr( $shortcode, $attr, $value ) {
+    $shortcode = (string) $shortcode;
+
+    // Replaces existing attribute.
+    $pattern_replace = '/(\s' . preg_quote( $attr, '/' ) . '\s*=\s*)(["\'])(.*?)\2/i';
+
+    if ( preg_match( $pattern_replace, $shortcode ) ) {
+        return preg_replace( $pattern_replace, '$1"' . addslashes( $value ) . '"', $shortcode, 1 );
+    }
+
+    // Adds attribute if missing.
+    if ( preg_match( '/^\[[a-zA-Z0-9_-]+(?:\s+[^]]*?)?\]$/', $shortcode ) ) {
+        return substr( $shortcode, 0, -1 ) . ' ' . $attr . '="' . esc_attr( $value ) . '"]';
+    }
+
+    return $shortcode;
+}
+
+/**
+ * Checks if content has any shortcode.
+ *
+ * @since NEXT
+ *
+ * @param string $content The content to check.
+ *
+ * @return bool True if any shortcode exists, false otherwise.
+ */
+function anys_has_shortcode( $content ) {
+    if ( preg_match( '/\[[a-zA-Z0-9_]+[^\]]*\]/', $content ) ) {
+        return true;
+    }
+
+    return false;
+}

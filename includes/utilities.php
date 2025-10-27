@@ -492,6 +492,7 @@ function anys_force_shortcode_attr( $shortcode, $attr, $value ) {
  * @param string $function   Requested function name.
  * @param array  $args       Requested args (already parsed).
  * @param array  $attributes Shortcode attributes (parsed).
+ * 
  * @return array [callable|string, array, array] Callable, args, modified attributes
  *
  * @since NEXT
@@ -500,39 +501,39 @@ function anys_resolve_function_call( $function, array $args, array $attributes )
     $fn     = (string) $function;
     $format = isset( $attributes['format'] ) ? strtolower( trim( (string) $attributes['format'] ) ) : '';
 
-    // Fast path: not Jalali
+    // Returns early if not Jalali format.
     if ( $format === '' || stripos( $format, 'jalali' ) !== 0 ) {
         return [ $fn, $args, $attributes ];
     }
 
-    // Only handle Jalali if function is date_i18n and Morilog\Jalali is available
+    // Handles Jalali only if function is date_i18n and Jalali library exists.
     if ( strtolower( $fn ) !== 'date_i18n' || ! class_exists( '\Morilog\Jalali\Jalalian' ) ) {
         return [ $fn, $args, $attributes ];
     }
-    // Determine which Jalali format to use
+
+    // Determines the Jalali format pattern.
     if ( $format === 'jalali' || $format === 'jalali_date' ) {
         $pattern = (string) get_option( 'date_format' );
-        // $attributes['format'] = 'date'; // normalize
     } elseif ( $format === 'jalali_datetime' ) {
         $pattern = (string) ( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ) );
-        // $attributes['format'] = 'datetime'; // normalize
     } else {
-        // If format not recognized, fallback to default flow
+        // Returns original values if format is not recognized.
         return [ $fn, $args, $attributes ];
     }
 
-    // timestamp argument (2nd arg of date_i18n)
+    // Extracts timestamp argument or uses current time.
     $ts = isset( $args[1] ) && is_numeric( $args[1] )
         ? (int) $args[1]
         : (int) current_time( 'timestamp' );
 
-    // Build safe closure to replace date_i18n using Jalali
+    // Builds callable closure to replace date_i18n with Jalali formatting.
     $callable = static function( $fmt, $timestamp ) {
         $tz = wp_timezone();
         $dt = ( new DateTimeImmutable( '@' . (int) $timestamp ) )->setTimezone( $tz );
         return \Morilog\Jalali\Jalalian::fromDateTime( $dt )->format( (string) $fmt );
     };
 
+    // Prepares final callable arguments.
     $final_args = [ $pattern, $ts ];
 
     return [ $callable, $final_args, $attributes ];

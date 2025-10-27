@@ -36,12 +36,12 @@ if ( ! $function ) {
     return '';
 }
 
-// Parse dynamic placeholders inside arguments
+// Parses dynamic placeholders inside arguments.
 $args = array_map( function( $arg ) {
     return anys_parse_dynamic_value( $arg, $cache );
 }, $parts );
 
-// Normalize callable and args based on attributes (e.g., calendar="jalali")
+// Normalizes callable and args.
 [ $callable, $final_args, $final_attributes ] = anys_resolve_function_call( $function, $args, $attributes );
 
 if ( is_string( $callable ) ) {

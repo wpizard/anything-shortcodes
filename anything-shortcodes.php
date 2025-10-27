@@ -151,7 +151,7 @@ final class Plugin {
      */
     public function load_dependencies() {
         require_once ANYS_INCLUDES_PATH . 'utilities.php';
-        require_once ANYS_INCLUDES_PATH . 'settings-page.php';
+        require_once ANYS_INCLUDES_PATH . 'settings/settings.php';
         require_once ANYS_INCLUDES_PATH . 'register-shortcodes.php';
         require_once ANYS_INCLUDES_PATH . 'nav-menu.php';
     }

@@ -5,7 +5,7 @@ namespace AnyS;
 defined( 'ABSPATH' ) || die();
 
 /**
- * Support Custom Link Class.
+ * Integrates shortcodes in Nav Menu.
  *
  * @since NEXT
  */
@@ -29,6 +29,7 @@ final class Nav_Menu {
         if ( is_null( self::$instance ) ) {
             self::$instance = new self();
         }
+
         return self::$instance;
     }
 
@@ -48,7 +49,9 @@ final class Nav_Menu {
      */
     protected function add_hooks() {
         add_filter( 'wp_nav_menu_objects', [ $this, 'process_menu_shortcodes' ] );
-        add_action( 'wp_nav_menu_item_custom_fields', [ $this, 'admin_menu_item_preview' ], 10, 4 );
+
+        // Temporarily disabled admin preview — will re-enable for release
+        // add_action( 'wp_nav_menu_item_custom_fields', [ $this, 'admin_menu_item_preview' ], 10, 4 );
     }
 
     /**
@@ -57,6 +60,7 @@ final class Nav_Menu {
      * @since NEXT
      *
      * @param array $items Menu items.
+     *
      * @return array
      */
     public function process_menu_shortcodes( $items ) {
@@ -65,7 +69,7 @@ final class Nav_Menu {
                 continue;
             }
 
-            // URL shortcode
+            // Processes shortcodes in URL.
             $url_raw = isset( $item->url ) ? (string) $item->url : '';
             $url_dec = rawurldecode( html_entity_decode( $url_raw, ENT_QUOTES ) );
 
@@ -73,37 +77,24 @@ final class Nav_Menu {
                 if ( preg_match( '#\[(.+)\]#s', $url_dec, $m ) === 1 ) {
                     $shortcode = '[' . trim( $m[1] ) . ']';
 
-                    // Force format="url" for [anys type="link"]
-                    if ( preg_match( '/^\[\s*anys\b/i', $shortcode )
-                        && preg_match( '/\btype\s*=\s*["\']link["\']/i', $shortcode ) ) {
-                        $shortcode = anys_force_shortcode_attr( $shortcode, 'format', 'url' );
-                    }
-
                     $output = do_shortcode( $shortcode );
                     $raw    = trim( wp_strip_all_tags( (string) $output ) );
 
                     if ( ! empty( $raw ) && filter_var( $raw, FILTER_VALIDATE_URL ) ) {
-                        // If the shortcode output is a valid URL, assign it
+                        // Assigns valid URL output.
                         $item->url = esc_url( $raw );
                     }
                 }
             }
 
-            // Title shortcode
-            $title = isset( $item->title ) ? (string) $item->title : '';
+            // Processes shortcodes in title.
+            if ( isset( $item->title ) && has_shortcode( $item->title, '' ) ) {
+                $output = do_shortcode( $item->title );
 
-            if ( strpos( $title, '[' ) === 0 && substr( $title, -1 ) === ']' ) {
-                if ( preg_match( '/^\[([a-zA-Z0-9_-]+)(?:\s+[^]]*?)?\]$/', $title ) !== 1 ) {
-                    continue;
+                if ( ! empty( $output ) && $output !== $item->title ) {
+                    // Updates title with shortcode output.
+                    $item->title = esc_html( wp_strip_all_tags( (string) $output ) );
                 }
-
-                $output = do_shortcode( $title );
-                if ( empty( $output ) ) {
-                    $item->title = esc_html( $item->post_title ?? '' );
-                    continue;
-                }
-
-                $item->title = esc_html( wp_strip_all_tags( (string) $output ) );
             }
         }
 
@@ -133,7 +124,7 @@ final class Nav_Menu {
         // Title preview
         $title_preview = '';
         $title_raw     = (string) $item->title;
-        
+
         if ( strpos( $title_raw, '[' ) === 0 && substr( $title_raw, -1 ) === ']' && preg_match( '/^\[[^\]]+\]$/', $title_raw ) ) {
             $out = do_shortcode( $title_raw );
             if ( $out !== '' && $out !== null ) {
@@ -171,5 +162,9 @@ final class Nav_Menu {
     }
 }
 
-/** @since NEXT */
+/**
+ * Initializes the Nav_Menu class.
+ *
+ * @since NEXT
+ */
 Nav_Menu::get_instance();

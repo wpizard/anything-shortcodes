@@ -466,21 +466,21 @@ function anys_get_default_whitelisted_functions() {
  * @return string Modified shortcode string.
  */
 function anys_force_shortcode_attr( $shortcode, $attr, $value ) {
-    $sc = (string) $shortcode;
+    $shortcode = (string) $shortcode;
 
-    // Replace existing attribute (handles single/double quotes)
+    // Replaces existing attribute.
     $pattern_replace = '/(\s' . preg_quote( $attr, '/' ) . '\s*=\s*)(["\'])(.*?)\2/i';
 
-    if ( preg_match( $pattern_replace, $sc ) ) {
-        return preg_replace( $pattern_replace, '$1"' . addslashes( $value ) . '"', $sc, 1 );
+    if ( preg_match( $pattern_replace, $shortcode ) ) {
+        return preg_replace( $pattern_replace, '$1"' . addslashes( $value ) . '"', $shortcode, 1 );
     }
 
-    // Add attribute if missing
-    if ( preg_match( '/^\[[a-zA-Z0-9_-]+(?:\s+[^]]*?)?\]$/', $sc ) ) {
-        return substr( $sc, 0, -1 ) . ' ' . $attr . '="' . esc_attr( $value ) . '"]';
+    // Adds attribute if missing.
+    if ( preg_match( '/^\[[a-zA-Z0-9_-]+(?:\s+[^]]*?)?\]$/', $shortcode ) ) {
+        return substr( $shortcode, 0, -1 ) . ' ' . $attr . '="' . esc_attr( $value ) . '"]';
     }
 
-    return $sc;
+    return $shortcode;
 }
 
 /**

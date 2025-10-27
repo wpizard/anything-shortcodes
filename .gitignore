@@ -1,7 +1,6 @@
 node_modules
 .DS_Store
 dist
-vendor
 backup
 anything-shortcodes
 anything-shortcodes.zip

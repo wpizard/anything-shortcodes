@@ -88,23 +88,27 @@ final class Anys_Settings_Page {
         ];
 	}
 
-	/**
-	 * Prevents cloning.
-	 *
-	 * @since NEXT
-	 *
-	 * @return void Nothing is returned.
-	 */
-	private function __clone() {}
+    /**
+     * Prevents cloning.
+     *
+     * @since NEXT
+     *
+     * @return void Nothing is returned.
+     */
+    public function __clone() {
+        throw new \Exception( 'Cloning of this class is not allowed.' );
+    }
 
-	/**
-	 * Prevents unserialization.
-	 *
-	 * @since NEXT
-	 *
-	 * @return void Nothing is returned.
-	 */
-	private function __wakeup() {}
+    /**
+     * Prevents unserialization.
+     *
+     * @since NEXT
+     *
+     * @return void Nothing is returned.
+     */
+    public function __wakeup() {
+        throw new \Exception( 'Unserialization of this class is not allowed.' );
+    }
 
 	/**
 	 * Registers the settings page under WP Admin → Settings.

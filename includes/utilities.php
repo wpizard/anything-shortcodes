@@ -577,9 +577,9 @@ function anys_date_i18n( $pattern, $value = null, $calendar = 'gregorian' ) {
             return (int) $val;
         }
         if ( is_string( $val ) ) {
-            $t = strtotime( $val );
-            if ( $t !== false ) {
-                return (int) $t;
+            $time = strtotime( $val );
+            if ( $time !== false ) {
+                return (int) $time;
             }
         }
         // Current time is returned if parsing fails.
@@ -587,15 +587,15 @@ function anys_date_i18n( $pattern, $value = null, $calendar = 'gregorian' ) {
     };
 
     // Timestamp is resolved.
-    $ts = $to_timestamp( $value );
+    $timestamp = $to_timestamp( $value );
 
     // Jalali date is used if library exists.
     if ( $calendar === 'jalali' && class_exists( '\Morilog\Jalali\Jalalian' ) ) {
         $timezone = wp_timezone();
-        $dt = ( new \DateTimeImmutable( '@' . $ts ) )->setTimezone( $timezone );
-        return \Morilog\Jalali\Jalalian::fromDateTime( $dt )->format( (string) $pattern );
+        $datetime = ( new \DateTimeImmutable( '@' . $timestamp ) )->setTimezone( $timezone );
+        return \Morilog\Jalali\Jalalian::fromDateTime( $datetime )->format( (string) $pattern );
     }
 
     // Gregorian date is returned as fallback.
-    return date_i18n( (string) $pattern, $ts );
+    return date_i18n( (string) $pattern, $timestamp );
 }

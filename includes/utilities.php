@@ -116,19 +116,33 @@ function anys_call_function( $function_name, $args = [] ) {
  * @return string
  */
 function anys_format_value( $value, $attributes = [] ) {
-    if ( empty( $attributes['format'] ) ) {
+    if ( empty( $attributes['format'] ) && !isset( $attributes['calendar'] ) ) {
         return $value;
     }
 
     $format    = $attributes['format'];
     $delimiter = isset( $attributes['delimiter'] ) ? $attributes['delimiter'] : ', ';
 
+    $calendar = $attributes['calendar'] ?? 'gregorian';
+
+    if ( $calendar === 'jalali' && empty($format) ) {
+        $format = 'date';
+    }
+
     switch ( $format ) {
         case 'date':
-            return date_i18n( get_option( 'date_format' ), strtotime( $value ) );
+            return anys_date_i18n(
+                get_option( 'date_format' ),
+                $value,
+                $calendar
+            );
 
         case 'datetime':
-            return date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), strtotime( $value ) );
+            return anys_date_i18n(
+                get_option( 'date_format' ) . ' ' . get_option( 'time_format' ),
+                $value,
+                $calendar
+            );
 
         case 'number':
             return number_format_i18n( floatval( $value ) );
@@ -537,4 +551,51 @@ function anys_resolve_function_call( $function, array $args, array $attributes )
     $final_args = [ $pattern, $timestamp ];
 
     return [ $callable, $final_args, $attributes ];
+}
+
+/**
+ * Formats a date or timestamp by the selected calendar.
+ *
+ * @since NEXT
+ *
+ * @param string $pattern   Format pattern.
+ * @param mixed  $value     Timestamp, string, or DateTime.
+ * @param string $calendar  Calendar type ('gregorian' or 'jalali').
+ *
+ * @return string Formatted date string.
+ */
+function anys_date_i18n( $pattern, $value = null, $calendar = 'gregorian' ) {
+    // Calendar name is normalized.
+    $calendar = strtolower( trim( (string) $calendar ) );
+
+    // Timestamp is extracted from input.
+    $to_timestamp = static function( $val ) {
+        if ( $val instanceof \DateTimeInterface ) {
+            return (int) $val->getTimestamp();
+        }
+        if ( is_numeric( $val ) ) {
+            return (int) $val;
+        }
+        if ( is_string( $val ) ) {
+            $t = strtotime( $val );
+            if ( $t !== false ) {
+                return (int) $t;
+            }
+        }
+        // Current time is returned if parsing fails.
+        return (int) current_time( 'timestamp' );
+    };
+
+    // Timestamp is resolved.
+    $ts = $to_timestamp( $value );
+
+    // Jalali date is used if library exists.
+    if ( $calendar === 'jalali' && class_exists( '\Morilog\Jalali\Jalalian' ) ) {
+        $timezone = wp_timezone();
+        $dt = ( new \DateTimeImmutable( '@' . $ts ) )->setTimezone( $timezone );
+        return \Morilog\Jalali\Jalalian::fromDateTime( $dt )->format( (string) $pattern );
+    }
+
+    // Gregorian date is returned as fallback.
+    return date_i18n( (string) $pattern, $ts );
 }

@@ -98,8 +98,17 @@ final class Anys_Settings_Page {
 		) {
 			$incoming = is_array( $_POST['anys'] ?? null ) ? wp_unslash( $_POST['anys'] ) : [];
 
-			// Stores options without altering structure; escaping occurs on output.
-			update_option( $this->option_name, $incoming );
+			// Get existing options.
+            $existing = get_option( $this->option_name, [] );
+            if ( ! is_array( $existing ) ) {
+                $existing = [];
+            }
+
+            // Sanitize & merge recursively (new values override old ones).
+            $merged = self::merge_and_sanitize_settings( $existing, $incoming );
+
+            // Persist merged options.
+            update_option( $this->option_name, $merged );
 
 			// Redirects to avoid form resubmission.
 			$redirect = add_query_arg(
@@ -139,13 +148,6 @@ final class Anys_Settings_Page {
             '</a>';
         echo '</div>';
 
-        // Displays update notice.
-        // if ( isset( $_GET['updated'] ) && 'true' === $_GET['updated'] ) {
-        //     echo '<div id="message" class="updated notice is-dismissible"><p>' .
-        //             esc_html__( 'Settings saved.', 'anys' ) .
-        //         '</p></div>';
-        // }
-
         // Renders tab navigation.
         echo '<h2 class="nav-tab-wrapper anys-tabs">';
         foreach ( $tabs as $slug => $label ) {
@@ -158,7 +160,9 @@ final class Anys_Settings_Page {
                     admin_url( 'options-general.php' )
                 )
             );
+
             $active = ( $slug === $active_tab ) ? ' nav-tab-active' : '';
+
             echo '<a href="' . $href . '" class="nav-tab anys-tab' . $active . '">' . esc_html( $label ) . '</a>';
         }
         echo '</h2>';
@@ -170,7 +174,9 @@ final class Anys_Settings_Page {
             // Provides $options and nonce to the view.
             $options    = get_option( $this->option_name, [] );
             $form_nonce = wp_create_nonce( 'anys_save_settings' );
+
             include $view_file;
+
         } else {
             echo '<p>' . esc_html__( 'The requested settings tab could not be found.', 'anys' ) . '</p>';
         }
@@ -223,15 +229,74 @@ final class Anys_Settings_Page {
             return;
         }
 
-        $url = ANYS_CSS_URL . 'settings.css';
-
         wp_enqueue_style(
             'anys-admin-settings',
-            $url,
+            ANYS_CSS_URL . 'settings.css',
             [],
             'NEXT'
         );
+
+        wp_enqueue_script(
+            'anys-admin-mobile-sidebar',
+            ANYS_JS_URL . 'admin-mobile-sidebar.js',
+            array(),
+            '1.0.0',
+            true
+        );
     }
+
+    /**
+     * Merges and sanitizes plugin settings recursively.
+     *
+     * Existing options are preserved unless replaced.
+     * Strings are sanitized and arrays are merged recursively.
+     * Special handling is applied for the 'whitelisted_functions' field.
+     *
+     * @since NEXT
+     *
+     * @param array $existing_options Previously saved options.
+     * @param array $new_submitted_options Newly submitted options.
+     * 
+     * @return array Sanitized merged options.
+     */
+    private static function merge_and_sanitize_settings( array $existing_options, array $new_submitted_options ): array {
+        // Existing and new settings are merged (new replaces old).
+        $merged_options = array_replace_recursive( $existing_options, $new_submitted_options );
+
+        // 'whitelisted_functions' field is normalized.
+        if ( isset( $merged_options['whitelisted_functions'] ) ) {
+            $raw_whitelisted = $merged_options['whitelisted_functions'];
+
+            if ( is_string( $raw_whitelisted ) ) {
+                $lines = preg_split( "/\r\n|\r|\n/", $raw_whitelisted );
+                $function_list = array_map( 'trim', (array) $lines );
+            } elseif ( is_array( $raw_whitelisted ) ) {
+                $function_list = array_map( 'trim', $raw_whitelisted );
+            } else {
+                $function_list = [];
+            }
+
+            // Empty and duplicate entries are removed.
+            $merged_options['whitelisted_functions'] = array_values(
+                array_unique( array_filter( $function_list, 'strlen' ) )
+            );
+        }
+
+        // Recursive sanitization is applied to scalar values.
+        array_walk_recursive( $merged_options, function ( &$value ) {
+            if ( is_string( $value ) ) {
+                $value = sanitize_text_field( $value );
+            } elseif ( is_bool( $value ) ) {
+                $value = (bool) $value;
+            } elseif ( is_numeric( $value ) ) {
+                // Numeric values are kept as-is.
+            }
+        } );
+
+        return $merged_options;
+    }
+
+
 }
 
 /** Boots the singleton immediately when this file loads. */

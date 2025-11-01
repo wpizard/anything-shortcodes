@@ -197,6 +197,7 @@ final class Register_Shortcodes {
             $content
         );
 
+        // Returns output if the shortcode type is 'loop'.
         if($attributes['type'] == 'loop'){
             return $output;
         }

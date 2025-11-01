@@ -15,18 +15,6 @@ namespace AnyS;
 
 defined( 'ABSPATH' ) or die();
 
-/**
- * Load Composer autoloader if available.
- *
- * Ensures all external dependencies (e.g., Morilog\Jalali)
- * are properly registered before plugin initialization.
- *
- * @since NEXT
- */
-$autoload = __DIR__ . '/vendor/autoload.php';
-if ( file_exists( $autoload ) ) {
-    require_once $autoload;
-}
 
 /**
  * Anything Shortcodes class.
@@ -157,16 +145,46 @@ final class Plugin {
     }
 
     /**
+     * Loads a file if it exists.
+     *
+     * @since NEXT
+     *
+     * @param string $file The full path to the file.
+     *
+     * @return void
+     */
+    protected function load_file( $file ) {
+        if (
+            ! empty( $file )
+            && file_exists( $file )
+        ) {
+            require_once $file;
+        }
+    }
+
+    /**
      * Loads dependencies.
      *
      * @since 1.0.0
      * @since 1.1.0 Changes file name.
+     * @since NEXT Dynamic includes & Composer support.
      */
     public function load_dependencies() {
-        require_once ANYS_INCLUDES_PATH . 'utilities.php';
-        require_once ANYS_INCLUDES_PATH . 'settings-page.php';
-        require_once ANYS_INCLUDES_PATH . 'register-shortcodes.php';
-        require_once ANYS_INCLUDES_PATH . 'nav-menu.php';
+
+        // Load Composer autoload if available.
+        $this->load_file( __DIR__ . '/vendor/autoload.php' );
+
+        // Load includes dynamically.
+        $includes = [
+            'utilities.php',
+            'settings-page.php',
+            'register-shortcodes.php',
+            'nav-menu.php',
+        ];
+
+        foreach ( $includes as $file ) {
+            $this->load_file( ANYS_INCLUDES_PATH . $file );
+        }
     }
 }
 

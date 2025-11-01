@@ -74,7 +74,7 @@ $value = call_user_func_array( $function, $args );
 
 // Applies formatting if specified.
 $value = anys_format_value( $value, $attributes );
-// error_log($value);
+
 // Wraps the output with before/after content and fallback.
 $output = anys_wrap_output( $value, $attributes );
 

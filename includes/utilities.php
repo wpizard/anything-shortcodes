@@ -599,6 +599,7 @@ function anys_date_i18n( $pattern, $value = null, $calendar = 'gregorian' ) {
 
     // Gregorian date is returned as fallback.
     return date_i18n( (string) $pattern, $timestamp );
+}
 /**
  * Checks if content has any shortcode.
  *

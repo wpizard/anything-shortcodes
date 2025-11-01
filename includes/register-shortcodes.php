@@ -73,6 +73,9 @@ final class Register_Shortcodes {
      * @return string
      */
     public function render_shortcode( $attributes, $content ) {
+        // Raw attributes are captured.
+        $raw_attributes = is_array( $attributes ) ? $attributes : [];
+
         // Default attributes.
         $defaults = [
             'type'      => '',
@@ -86,6 +89,9 @@ final class Register_Shortcodes {
         ];
 
         $attributes = shortcode_atts( $defaults, $attributes, 'anys' );
+
+        // Unknown keys are merged into normalized attributes.
+        $attributes = $this->merge_unknown_attributes( $attributes, $raw_attributes, $defaults );
 
         /**
          * Filters the shortcode attributes before processing.
@@ -191,8 +197,31 @@ final class Register_Shortcodes {
             $content
         );
 
+        if($attributes['type'] == 'loop'){
+            return $output;
+        }
+
         return $output . do_shortcode( $content );
     }
+
+    /**
+	 * Merge unknown (non-default) attributes back after shortcode_atts().
+	 *
+	 * Keeps keys like post_type, s, tax_query, meta_query, etc.
+	 *
+	 * @param array<string,mixed> $normalized Attributes with defaults applied.
+	 * @param array<string,mixed> $raw        Raw attributes from WP.
+	 * @param array<string,mixed> $defaults   Default attribute map.
+     *
+	 * @return array<string,mixed>
+	 */
+	private function merge_unknown_attributes( array $normalized, array $raw, array $defaults ) : array {
+		// Finds non-default keys and appends them.
+        $extra = array_diff_key( $raw, $defaults );
+
+        // Keeps normalized values, adds extras.
+        return $normalized + $extra;
+	}
 }
 
 /**

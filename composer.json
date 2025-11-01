@@ -1,0 +1,19 @@
+{
+  "name": "wpizard/anything-shortcodes",
+  "description": "Get and display anything in WordPress with shortcodes.",
+  "type": "wordpress-plugin",
+  "license": "GPL-2.0-or-later",
+  "authors": [
+    {
+      "name": "WPizard",
+      "homepage": "https://wpizard.com/"
+    }
+  ],
+  "require": {
+    "php": ">=7.4",
+    "morilog/jalali": "^3.4"
+  },
+  "autoload": {
+     "classmap": ["includes/"]
+  }
+}

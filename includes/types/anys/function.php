@@ -21,7 +21,7 @@ defined( 'ABSPATH' ) || die();
 $attributes = anys_parse_dynamic_attributes( $attributes ?? [] );
 
 // Splits the function name and arguments from the 'name' attribute.
-$parts = array_map( 'trim', explode( ',', $attributes['name'] ?? '' ) );
+$parts = array_map( 'trim', explode( ',', $attributes['name'] ?? '', 2 ) );
 
 // Retrieves the function name.
 $function = array_shift( $parts );

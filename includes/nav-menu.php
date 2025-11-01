@@ -50,7 +50,7 @@ final class Nav_Menu {
     protected function add_hooks() {
         add_filter( 'wp_nav_menu_objects', [ $this, 'process_menu_shortcodes' ] );
 
-        // Temporarily disabled admin preview — will re-enable for release
+        // Temporarily disabled admin preview — until further decision.
         // add_action( 'wp_nav_menu_item_custom_fields', [ $this, 'admin_menu_item_preview' ], 10, 4 );
     }
 
@@ -71,24 +71,15 @@ final class Nav_Menu {
 
             // Processes shortcodes in URL.
             $url_raw = isset( $item->url ) ? (string) $item->url : '';
-            $url_dec = rawurldecode( html_entity_decode( $url_raw, ENT_QUOTES ) );
+            $url_decoded = rawurldecode( html_entity_decode( $url_raw, ENT_QUOTES ) );
 
-            if ( preg_match( '#^(?:https?://)?\[[^\]]+\]$#i', $url_dec ) ) {
-                if ( preg_match( '#\[(.+)\]#s', $url_dec, $m ) === 1 ) {
-                    $shortcode = '[' . trim( $m[1] ) . ']';
-
-                    $output = do_shortcode( $shortcode );
-                    $raw    = trim( wp_strip_all_tags( (string) $output ) );
-
-                    if ( ! empty( $raw ) && filter_var( $raw, FILTER_VALIDATE_URL ) ) {
-                        // Assigns valid URL output.
-                        $item->url = esc_url( $raw );
-                    }
-                }
+            if ( anys_has_shortcode( $url_decoded ) ) {
+                $output = do_shortcode( $url_decoded );
+                $item->url = trim( wp_strip_all_tags( (string) $output ) );
             }
 
             // Processes shortcodes in title.
-            if ( isset( $item->title ) && has_shortcode( $item->title, '' ) ) {
+            if ( isset( $item->title ) && anys_has_shortcode( $item->title ) ) {
                 $output = do_shortcode( $item->title );
 
                 if ( ! empty( $output ) && $output !== $item->title ) {
@@ -115,13 +106,14 @@ final class Nav_Menu {
         if ( ! is_admin() || ! function_exists( 'get_current_screen' ) ) {
             return;
         }
+
         $screen = get_current_screen();
 
         if ( ! $screen || $screen->base !== 'nav-menus' ) {
             return;
         }
 
-        // Title preview
+        // Title preview.
         $title_preview = '';
         $title_raw     = (string) $item->title;
 

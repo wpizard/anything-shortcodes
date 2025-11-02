@@ -75,8 +75,10 @@ if ( ! in_array( $function, $whitelisted_functions, true ) ) {
     return '';
 }
 
+$cache = [];
+
 // Parses each argument dynamically.
-$args = array_map( function( $arg ) {
+$args = array_map( function( $arg ) use ( &$cache ) {
     return anys_parse_dynamic_value( $arg, $cache );
 }, $parts );
 

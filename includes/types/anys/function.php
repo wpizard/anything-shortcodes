@@ -75,10 +75,17 @@ if ( ! in_array( $function, $whitelisted_functions, true ) ) {
     return '';
 }
 
+// Parses each argument dynamically.
 $args = array_map( function( $arg ) {
     return anys_parse_dynamic_value( $arg, $cache );
 }, $parts );
 
+// Removes empty strings (optional) to avoid passing to functions that take 0 args.
+$args = array_filter( $args, function( $arg ) {
+    return $arg !== '';
+} );
+
+// Calls the whitelisted function with the provided arguments.
 $value = call_user_func_array( $function, $args );
 
 // Applies formatting if specified.

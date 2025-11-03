@@ -83,7 +83,6 @@ final class Register_Shortcodes {
             'fallback'  => '',
             'format'    => '',
             'delimiter' => '',
-            'calendar'  => '',
         ];
 
         $attributes = shortcode_atts( $defaults, $attributes, 'anys' );

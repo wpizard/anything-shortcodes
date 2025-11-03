@@ -486,109 +486,6 @@ function anys_force_shortcode_attr( $shortcode, $attr, $value ) {
 }
 
 /**
- * Resolve final callable and args before dispatching the function call.
- *
- * - Keeps backward compatibility.
- * - Allows feature flags (e.g., calendar="jalali") to map to internal closures safely.
- *
- * @param string $function   Requested function name.
- * @param array  $args       Requested args (already parsed).
- * @param array  $attributes Shortcode attributes (parsed).
- *
- * @return array [callable|string, array, array] Callable, args, modified attributes
- *
- * @since NEXT
- */
-function anys_resolve_function_call( $function, array $args, array $attributes ) {
-    $target_function = (string) $function;
-    $format = isset( $attributes['format'] ) ? strtolower( trim( (string) $attributes['format'] ) ) : '';
-
-    // Returns early if not Jalali format.
-    if ( $format === '' || stripos( $format, 'jalali' ) !== 0 ) {
-        return [ $target_function, $args, $attributes ];
-    }
-
-    // Handles Jalali only if function is date_i18n and Jalali library exists.
-    if ( strtolower( $target_function ) !== 'date_i18n' || ! class_exists( '\Morilog\Jalali\Jalalian' ) ) {
-        return [ $target_function, $args, $attributes ];
-    }
-
-    // Determines the Jalali format pattern.
-    if ( $format === 'jalali' || $format === 'jalali_date' ) {
-        $pattern = (string) get_option( 'date_format' );
-    } elseif ( $format === 'jalali_datetime' ) {
-        $pattern = (string) ( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ) );
-    } else {
-        // Returns original values if format is not recognized.
-        return [ $target_function, $args, $attributes ];
-    }
-
-    // Extracts timestamp argument or uses current time.
-    $timestamp = isset( $args[1] ) && is_numeric( $args[1] )
-        ? (int) $args[1]
-        : (int) current_time( 'timestamp' );
-
-    // Builds callable closure to replace date_i18n with Jalali formatting.
-    $callable = static function( $fmt, $ts ) {
-        $tz = wp_timezone();
-        $dt = ( new DateTimeImmutable( '@' . (int) $ts ) )->setTimezone( $tz );
-        return \Morilog\Jalali\Jalalian::fromDateTime( $dt )->format( (string) $fmt );
-    };
-
-    // Prepares final callable arguments.
-    $final_args = [ $pattern, $timestamp ];
-
-    return [ $callable, $final_args, $attributes ];
-}
-
-/**
- * Formats a date or timestamp by the selected calendar.
- *
- * @since NEXT
- * @deprecated Use anys_date_i18n_jalali() instead.
- *
- * @param string $pattern   Format pattern.
- * @param mixed  $value     Timestamp, string, or DateTime.
- * @param string $calendar  Calendar type ('gregorian' or 'jalali').
- *
- * @return string Formatted date string.
- */
-function anys_date_i18n( $pattern, $value = null, $calendar = 'gregorian' ) {
-    // Calendar name is normalized.
-    $calendar = strtolower( trim( (string) $calendar ) );
-
-    // Timestamp is extracted from input.
-    $to_timestamp = static function( $val ) {
-        if ( $val instanceof \DateTimeInterface ) {
-            return (int) $val->getTimestamp();
-        }
-        if ( is_numeric( $val ) ) {
-            return (int) $val;
-        }
-        if ( is_string( $val ) ) {
-            $time = strtotime( $val );
-            if ( $time !== false ) {
-                return (int) $time;
-            }
-        }
-        // Current time is returned if parsing fails.
-        return (int) current_time( 'timestamp' );
-    };
-
-    // Timestamp is resolved.
-    $timestamp = $to_timestamp( $value );
-
-    // Jalali date is used if library exists.
-    if ( $calendar === 'jalali' && class_exists( '\Morilog\Jalali\Jalalian' ) ) {
-        $timezone = wp_timezone();
-        $datetime = ( new \DateTimeImmutable( '@' . $timestamp ) )->setTimezone( $timezone );
-        return \Morilog\Jalali\Jalalian::fromDateTime( $datetime )->format( (string) $pattern );
-    }
-
-    // Gregorian date is returned as fallback.
-    return date_i18n( (string) $pattern, $timestamp );
-}
-/**
  * Checks if content has any shortcode.
  *
  * @since NEXT
@@ -604,6 +501,7 @@ function anys_has_shortcode( $content ) {
 
     return false;
 }
+
 /**
  * Jalali formatter via Morilog\Jalali; falls back to date_i18n().
  *

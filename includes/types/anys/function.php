@@ -6,7 +6,7 @@
  *
  * Expected attributes:
  * - name: Function name followed by optional arguments, separated by commas (required)
- *         Example: "date_i18n, Y", "date_i18n, F j, Y|1730505600"
+ *         Example: "date_i18n, Y", "date_i18n, F j, Y | 1730505600"
  * - before: Content to prepend before the output (optional)
  * - after: Content to append after the output (optional)
  * - fallback: Content to display if the value is empty (optional)

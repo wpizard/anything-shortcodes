@@ -15,7 +15,6 @@ namespace AnyS;
 
 defined( 'ABSPATH' ) or die();
 
-
 /**
  * Anything Shortcodes class.
  *

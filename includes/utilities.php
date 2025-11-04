@@ -81,7 +81,7 @@ function anys_get_or_post( $needle, $default = null ) {
  *
  * @since 1.0.0
  *
- * @return boolean Returns text with prefix.
+ * @return string Returns text with prefix.
  */
 function anys_prefix( $text ) {
     return ANYS_SLUG . $text;
@@ -450,6 +450,7 @@ function anys_get_default_whitelisted_functions() {
         'wp_date',
         'current_time',
         'get_locale',
+        'anys_date_i18n_jalali',
     ];
 
     return apply_filters( 'anys/default_whitelisted_functions', $default_functions );
@@ -499,4 +500,52 @@ function anys_has_shortcode( $content ) {
     }
 
     return false;
+}
+
+/**
+ * Returns a Jalali (Persian) formatted date similar to WordPress's date_i18n().
+ *
+ * @since NEXT
+ *
+ * @param string    $format
+ * @param int|false $timestamp
+ * @param bool      $gmt
+ *
+ * @return string
+ */
+function anys_date_i18n_jalali( $format, $timestamp = false, $gmt = false ) {
+
+    // Timestamp is resolved like core.
+    $resolved_timestamp = ( false === $timestamp )
+        ? (int) current_time( 'timestamp', $gmt )
+        : (int) $timestamp;
+
+    // Availability is cached per request.
+    static $jalali_available = null;
+
+    if ( $jalali_available === null ) {
+        $jalali_available = class_exists( '\Morilog\Jalali\Jalalian' );
+    }
+
+    // Core is delegated to when Morilog is absent.
+    if ( ! $jalali_available ) {
+        return date_i18n( (string) $format, $resolved_timestamp, $gmt );
+    }
+
+    // Site timezone is cached (UTC when $gmt is true).
+    static $cached_site_timezone = null;
+
+    $timezone_object = $gmt ? new \DateTimeZone( 'UTC' )
+        : ( $cached_site_timezone ?: ( $cached_site_timezone = wp_timezone() ) );
+
+    // Zoned DateTime is constructed.
+    $datetime_object = ( new \DateTimeImmutable( '@' . $resolved_timestamp ) )
+        ->setTimezone( $timezone_object );
+
+    // Jalali output is produced.
+    $formatted_output = \Morilog\Jalali\Jalalian::fromDateTime( $datetime_object )
+        ->format( (string) $format );
+
+    // Core filter is applied for consistency.
+    return apply_filters( 'date_i18n', $formatted_output, (string) $format, $resolved_timestamp, $gmt );
 }

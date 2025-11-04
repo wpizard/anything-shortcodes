@@ -146,7 +146,7 @@ final class Plugin {
     /**
      * Loads a file if it exists.
      *
-     * @since NEXT
+     * @since 1.4.0
      *
      * @param string $file The full path to the file.
      *
@@ -166,7 +166,7 @@ final class Plugin {
      *
      * @since 1.0.0
      * @since 1.1.0 Changes file name.
-     * @since NEXT Dynamic includes & Composer support.
+     * @since 1.4.0 Dynamic includes & Composer support.
      */
     public function load_dependencies() {
 

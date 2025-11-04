@@ -7,21 +7,21 @@ defined( 'ABSPATH' ) || die();
 /**
  * Integrates shortcodes in Nav Menu.
  *
- * @since NEXT
+ * @since 1.4.0
  */
 final class Nav_Menu {
 
     /**
      * The instance.
      *
-     * @since NEXT
+     * @since 1.4.0
      */
     private static $instance;
 
     /**
      * Returns the instance.
      *
-     * @since NEXT
+     * @since 1.4.0
      *
      * @return Nav_Menu
      */
@@ -36,7 +36,7 @@ final class Nav_Menu {
     /**
      * Constructor.
      *
-     * @since NEXT
+     * @since 1.4.0
      */
     private function __construct() {
         $this->add_hooks();
@@ -45,7 +45,7 @@ final class Nav_Menu {
     /**
      * Adds hooks.
      *
-     * @since NEXT
+     * @since 1.4.0
      */
     protected function add_hooks() {
         add_filter( 'wp_nav_menu_objects', [ $this, 'process_menu_shortcodes' ] );
@@ -57,7 +57,7 @@ final class Nav_Menu {
     /**
      * Process shortcodes in menu URLs and titles (frontend/admin render).
      *
-     * @since NEXT
+     * @since 1.4.0
      *
      * @param array $items Menu items.
      *
@@ -95,7 +95,7 @@ final class Nav_Menu {
     /**
      * Admin preview under menu item fields (does not change saved values).
      *
-     * @since NEXT
+     * @since 1.4.0
      *
      * @param int     $item_id
      * @param \WP_Post $item
@@ -157,6 +157,6 @@ final class Nav_Menu {
 /**
  * Initializes the Nav_Menu class.
  *
- * @since NEXT
+ * @since 1.4.0
  */
 Nav_Menu::get_instance();

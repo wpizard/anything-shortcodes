@@ -165,6 +165,7 @@ Execute a whitelisted PHP function and optionally pass arguments.
 Examples:
 
 - `[anys type="function" name="date_i18n, F j, Y"]` — Shows today’s date.
+- `[anys type="function" name="date_i18n, F j, Y | true"]` — Shows today’s date in GMT. Use the pipe (`|`) to separate multiple arguments.
 - `[anys type="function" name="sanitize_text_field, (anys type='option' name='blogdescription')"]` — Sanitizes and shows site description.
 - `[anys type="function" name="date_i18n, F j, Y" before="Today is "]` — Shows today’s date with custom prefix.
 - `[anys type="function" name="date_i18n, F j, Y" after="."]` — Shows today’s date with custom suffix.
@@ -209,6 +210,18 @@ Example:
 - `strip_tags` — Remove HTML/PHP tags.
 
 Custom formats are supported via filters.
+
+== Integrations ==
+
+**Navigation Menu**
+The plugin now supports using shortcodes directly in navigation menu items.
+You can add dynamic values in both the **Menu Label** and **Menu Link** fields using the `[anys]` shortcode.
+For example:
+- Use `[anys type="link" name="logout"]` in the **Link** field.
+- Use `[anys type="user-field" name="display_name"]` in the **Label** field.
+
+This allows creating dynamic and personalized menus effortlessly.
+
 
 == Hooks ==
 

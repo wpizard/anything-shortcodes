@@ -3,7 +3,7 @@
  * Plugin Name: Anything Shortcodes
  * Plugin URI: https://wordpress.org/plugins/anything-shortcodes
  * Description: Get and display anything in WordPress with shortcodes.
- * Version: 1.3.0
+ * Version: 1.4.0
  * Author: WPizard
  * Author URI: https://wpizard.com/
  * Text Domain: anys
@@ -78,7 +78,7 @@ final class Plugin {
     protected function define_constants() {
         define( 'ANYS_NAME', esc_html__( 'Anything Shortcodes', 'anys' ) );
         define( 'ANYS_SLUG', 'anys' );
-        define( 'ANYS_VERSION', '1.3.0' );
+        define( 'ANYS_VERSION', '1.4.0' );
 
         define( 'ANYS_PATH', wp_normalize_path( trailingslashit( plugin_dir_path( __FILE__ ) ) ) );
         define( 'ANYS_INCLUDES_PATH', ANYS_PATH . 'includes/' );
@@ -144,16 +144,46 @@ final class Plugin {
     }
 
     /**
+     * Loads a file if it exists.
+     *
+     * @since 1.4.0
+     *
+     * @param string $file The full path to the file.
+     *
+     * @return void
+     */
+    protected function load_file( $file ) {
+        if (
+            ! empty( $file )
+            && file_exists( $file )
+        ) {
+            require_once $file;
+        }
+    }
+
+    /**
      * Loads dependencies.
      *
      * @since 1.0.0
      * @since 1.1.0 Changes file name.
+     * @since 1.4.0 Dynamic includes & Composer support.
      */
     public function load_dependencies() {
-        require_once ANYS_INCLUDES_PATH . 'utilities.php';
-        require_once ANYS_INCLUDES_PATH . 'settings-page.php';
-        require_once ANYS_INCLUDES_PATH . 'register-shortcodes.php';
-        require_once ANYS_INCLUDES_PATH . 'nav-menu.php';
+
+        // Load Composer autoload if available.
+        $this->load_file( __DIR__ . '/vendor/autoload.php' );
+
+        // Load includes dynamically.
+        $includes = [
+            'utilities.php',
+            'settings-page.php',
+            'register-shortcodes.php',
+            'nav-menu.php',
+        ];
+
+        foreach ( $includes as $file ) {
+            $this->load_file( ANYS_INCLUDES_PATH . $file );
+        }
     }
 }
 

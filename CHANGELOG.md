@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.0] - 2025-11-04
+- Added support for pipe-separated dynamic function arguments in the `[anys]` shortcode.
+- Added shortcode support in navigation menu **Label** and **Link** fields.
+- Added the `anys_date_i18n_jalali` function to support Jalali date formatting.
+
 ## [1.3.0] - 2025-10-07
 - Added Link type.
 

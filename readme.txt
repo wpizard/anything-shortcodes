@@ -165,15 +165,17 @@ Execute a whitelisted PHP function and optionally pass arguments.
 Examples:
 
 - `[anys type="function" name="date_i18n, F j, Y"]` — Shows today’s date.
-- `[anys type="function" name="sanitize_text_field, (anys type='option' name='blogdescription')"]` — Sanitizes and shows site description.
 - `[anys type="function" name="date_i18n, F j, Y" before="Today is "]` — Shows today’s date with custom prefix.
 - `[anys type="function" name="date_i18n, F j, Y" after="."]` — Shows today’s date with custom suffix.
+- `[anys type="function" name="wp_get_attachment_url, 99 | full"]` — Gets the URL of attachment ID 99 in full size. Use the pipe (`|`) to separate multiple arguments.
+- `[anys type="function" name="sanitize_text_field, (anys type='option' name='blogdescription')"]` — Sanitizes and shows site description.
 - `[anys type="function" name="my_custom_function" fallback="N/A"]` — Shows output of custom function or fallback.
 - `[anys type="function" name="my_custom_function" format="capitalize"]` — Shows output of custom function and automatically capitalizes the output (e.g., "hello world" → "Hello World").
 - `[anys type="function" name="my_custom_function" delimiter=", "]` — Shows output of custom function. If the function returns an array, the values are joined using the given delimiter (e.g., `["apple", "banana"]` → "apple, banana").
 
 Notes:
 - Only functions whitelisted in plugin settings can be executed.
+- Additional arguments can be passed to the function using a pipe (`|`).
 - Arguments can include other `[anys]` shortcodes using `()` instead of `[]`.
 - Output can be formatted or wrapped with `before`/`after` content and fallback.
 
@@ -209,6 +211,18 @@ Example:
 - `strip_tags` — Remove HTML/PHP tags.
 
 Custom formats are supported via filters.
+
+== Integrations ==
+
+**Navigation Menu**
+The plugin now supports using shortcodes directly in navigation menu items.
+You can add dynamic values in both the **Menu Label** and **Menu Link** fields using the `[anys]` shortcode.
+For example:
+- Use `[anys type="link" name="logout"]` in the **Link** field.
+- Use `[anys type="user-field" name="display_name"]` in the **Label** field.
+
+This allows creating dynamic and personalized menus effortlessly.
+
 
 == Hooks ==
 

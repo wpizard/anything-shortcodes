@@ -6,7 +6,7 @@
  *
  * Expected attributes:
  * - name: Function name followed by optional arguments, separated by commas (required)
- *         Example: "date_i18n, Y"
+ *         Example: "date_i18n, Y", "date_i18n, F j, Y | 1730505600"
  * - before: Content to prepend before the output (optional)
  * - after: Content to append after the output (optional)
  * - fallback: Content to display if the value is empty (optional)
@@ -21,21 +21,29 @@ defined( 'ABSPATH' ) || die();
 $attributes = anys_parse_dynamic_attributes( $attributes ?? [] );
 
 // Splits the function name and arguments from the 'name' attribute.
-$parts = array_map( 'trim', explode( ',', $attributes['name'] ?? '' ) );
+$parts = array_map( 'trim', explode( ',', $attributes['name'] ?? '', 2 ) );
 
 // Retrieves the function name.
 $function = array_shift( $parts );
 
+// Remaining string contains all arguments.
+$parts_string = $parts[0] ?? '';
+
+// Splits parts by pipe.
+$parts = array_map( 'trim', explode( '|', $parts_string ) );
+
 // Defines the whitelist of whitelisted functions for security.
 $whitelisted_functions = anys_get_whitelisted_functions();
 
-// Executes the function if it's whitelisted.
+// Initializes the output value.
 $value = '';
 
+// Validates the function name.
 if ( ! $function ) {
     return '';
 }
 
+// Checks if the function exists.
 if ( ! function_exists( $function ) ) {
     if ( current_user_can( 'manage_options' ) ) {
         echo sprintf(
@@ -48,6 +56,7 @@ if ( ! function_exists( $function ) ) {
     return '';
 }
 
+// Checks if the function is whitelisted.
 if ( ! in_array( $function, $whitelisted_functions, true ) ) {
     if ( current_user_can( 'manage_options' ) ) {
         $settings_url = admin_url( 'options-general.php?page=anys-settings' );
@@ -66,10 +75,19 @@ if ( ! in_array( $function, $whitelisted_functions, true ) ) {
     return '';
 }
 
-$args = array_map( function( $arg ) {
+$cache = [];
+
+// Parses each argument dynamically.
+$args = array_map( function( $arg ) use ( &$cache ) {
     return anys_parse_dynamic_value( $arg, $cache );
 }, $parts );
 
+// Removes empty strings (optional) to avoid passing to functions that take 0 args.
+$args = array_filter( $args, function( $arg ) {
+    return $arg !== '';
+} );
+
+// Calls the whitelisted function with the provided arguments.
 $value = call_user_func_array( $function, $args );
 
 // Applies formatting if specified.

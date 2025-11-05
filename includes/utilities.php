@@ -549,3 +549,63 @@ function anys_date_i18n_jalali( $format, $timestamp = false, $gmt = false ) {
     // Core filter is applied for consistency.
     return apply_filters( 'date_i18n', $formatted_output, (string) $format, $resolved_timestamp, $gmt );
 }
+
+/**
+ * Conditionally enqueues Elementor assets for template rendering.
+ *
+ * @param array $attributes Shortcode attributes (merged and filtered).
+ * 
+ * @since NEXT
+ */
+function anys_maybe_enqueue_elementor_assets( array $attributes ) : void {
+    // Validate context.
+    if ( 'elementor' !== strtolower( (string) ( $attributes['type'] ?? '' ) ) ) {
+        return;
+    }
+    if ( 'template' !== strtolower( (string) ( $attributes['name'] ?? '' ) ) ) {
+        return;
+    }
+
+    // Check Elementor.
+    if ( ! did_action( 'elementor/loaded' ) || ! class_exists( '\Elementor\Plugin' ) ) {
+        return;
+    }
+
+    // Validate template id.
+    $id = isset( $attributes['id'] ) ? absint( $attributes['id'] ) : 0;
+    if ( ! $id ) {
+        return;
+    }
+
+    // Enqueue core frontend CSS/JS.
+    wp_enqueue_style( 'elementor-frontend' );
+    wp_enqueue_style( 'elementor-icons' );
+    wp_enqueue_script( 'elementor-frontend' );
+
+    // Enqueue Pro assets if available.
+    if ( did_action( 'elementor_pro/init' ) ) {
+        wp_enqueue_style( 'elementor-pro-frontend' );
+        wp_enqueue_script( 'elementor-pro-frontend' );
+    }
+
+    // Let Elementor enqueue extra assets.
+    $frontend = \Elementor\Plugin::instance()->frontend ?? null;
+    if ( $frontend ) {
+        if ( method_exists( $frontend, 'enqueue_styles' ) ) {
+            $frontend->enqueue_styles();
+        }
+        if ( method_exists( $frontend, 'enqueue_scripts' ) ) {
+            $frontend->enqueue_scripts();
+        }
+    }
+
+    // Enqueue per-template CSS.
+    if ( class_exists( '\Elementor\Core\Files\CSS\Post' ) ) {
+        try {
+            $css = \Elementor\Core\Files\CSS\Post::create( $id );
+            $css->enqueue();
+        } catch ( \Throwable ) {
+            // Silently ignored.
+        }
+    }
+}

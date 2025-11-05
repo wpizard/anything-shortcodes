@@ -1,9 +1,4 @@
 <?php
-/**
- * Elementor integration for Anything Shortcodes.
- *
- * @since NEXT
- */
 
 namespace AnyS\Elementor;
 
@@ -11,14 +6,19 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 use Elementor\Core\DynamicTags\Manager as Tags_Manager;
 
-final class Elementor_Integration {
+/**
+ * Elementor integration for Anything Shortcodes.
+ *
+ * @since NEXT
+ */
+final class Elementor {
 
     /**
      * Instance.
      *
      * @since NEXT
      *
-     * @var Elementor_Integration|null
+     * @var Elementor|null
      */
     private static $instance = null;
 
@@ -27,7 +27,7 @@ final class Elementor_Integration {
      *
      * @since NEXT
      *
-     * @return Elementor_Integration
+     * @return Elementor
      */
     public static function get_instance() {
         if ( null === self::$instance ) {
@@ -43,11 +43,6 @@ final class Elementor_Integration {
      * @since NEXT
      */
     private function __construct() {
-        if ( did_action( 'elementor/loaded' ) ) {
-            $this->add_hooks();
-            return;
-        }
-        
         add_action( 'elementor/init', [ $this, 'add_hooks' ] );
     }
 
@@ -74,7 +69,7 @@ final class Elementor_Integration {
     public function register_dynamic_tags( Tags_Manager $dynamic_tags ) {
         $dynamic_tags->register_group(
             'anything-shortcodes',
-            [ 'title' => __( 'Anything Shortcodes', 'anys' ) ]
+            [ 'title' => esc_html__( 'Anything Shortcodes', 'anys' ) ]
         );
 
         require_once __DIR__ . '/shortcode-tag.php';
@@ -83,4 +78,4 @@ final class Elementor_Integration {
     }
 }
 
-Elementor_Integration::get_instance();
+Elementor::get_instance();

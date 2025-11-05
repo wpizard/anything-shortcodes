@@ -1,9 +1,4 @@
 <?php
-/**
- * Dynamic Tag: Shortcode.
- *
- * @since NEXT
- */
 
 namespace AnyS\Elementor\Tags;
 
@@ -13,13 +8,18 @@ use Elementor\Core\DynamicTags\Tag;
 use Elementor\Controls_Manager;
 use Elementor\Modules\DynamicTags\Module as Dynamic_Tags_Module;
 
+/**
+ * Dynamic Tag: Shortcode.
+ *
+ * @since NEXT
+ */
 class Shortcode_Tag extends Tag {
 
     /**
      * Gets unique slug.
      *
      * @since NEXT
-     * 
+     *
      * @return string
      */
     public function get_name() {
@@ -34,7 +34,7 @@ class Shortcode_Tag extends Tag {
      * @return string
      */
     public function get_title() {
-        return __( 'Shortcode', 'anys' );
+        return esc_html__( 'Shortcode', 'anys' );
     }
 
     /**
@@ -67,10 +67,10 @@ class Shortcode_Tag extends Tag {
      */
     protected function register_controls() {
         $this->add_control(
-            'shortcode',
+            'anys_shortcode',
             [
                 /* Translators: Elementor control label. */
-                'label'       => __( 'Shortcode', 'anys' ),
+                'label'       => esc_html__( 'Shortcode', 'anys' ),
                 'type'        => Controls_Manager::TEXT,
                 'placeholder' => '[my_shortcode attr="value"]',
                 'label_block' => true,
@@ -86,18 +86,18 @@ class Shortcode_Tag extends Tag {
      * @return void
      */
     public function render() {
-        $raw = trim((string) $this->get_settings('shortcode'));
+        $raw = trim( (string) $this->get_settings('anys_shortcode') );
 
-        if ($raw === '') {
+        if ( $raw === '' ) {
             return;
         }
 
-        if (!preg_match('/^\[[A-Za-z0-9_\-]+(?:\s+[^\]]+)?\]$/', $raw)) {
+        if ( ! preg_match( '/^\[[A-Za-z0-9_\-]+(?:\s+[^\]]+)?\]$/', $raw ) ) {
             return;
         }
 
-        $shortcode = wp_kses_post($raw);
-        $output    = do_shortcode($shortcode);
+        $shortcode = wp_kses_post( $raw );
+        $output    = do_shortcode( $shortcode );
 
         echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
     }

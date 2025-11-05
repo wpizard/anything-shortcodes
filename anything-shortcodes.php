@@ -103,7 +103,6 @@ final class Plugin {
         add_action( 'plugins_loaded', [ $this, 'init' ] );
         add_action( 'init', [ $this, 'load_textdomain' ] );
         add_action( 'anys/init', [ $this, 'load_dependencies' ] );
-        add_action( 'plugins_loaded', [ $this, 'maybe_register_elementor_dynamic_tags' ], 20 );
     }
 
     /**
@@ -155,17 +154,7 @@ final class Plugin {
         require_once ANYS_INCLUDES_PATH . 'settings-page.php';
         require_once ANYS_INCLUDES_PATH . 'register-shortcodes.php';
         require_once ANYS_INCLUDES_PATH . 'nav-menu.php';
-    }
-
-    /**
-     * Registers Elementor dynamic tags if Elementor is active.
-     *
-     * @since NEXT
-     */
-    public function maybe_register_elementor_dynamic_tags() {
-        if ( did_action( 'elementor/loaded' ) ) {
-            require_once ANYS_INCLUDES_PATH . 'Elementor/register-dynamic-tags.php';
-        }
+        require_once ANYS_INCLUDES_PATH . 'elementor/elementor.php';
     }
 }
 

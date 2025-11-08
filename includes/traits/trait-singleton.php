@@ -7,9 +7,19 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Singleton trait.
  *
+ * Use this trait to create singleton classes.
+ *
  * @since NEXT
  */
 trait Singleton {
+
+    /**
+     * The instance.
+     *
+     * @since NEXT
+     *
+     * @var static
+     */
     private static $instance;
 
     /**

@@ -32,7 +32,6 @@ final class Ajax {
      * @since NEXT
      */
     public function handle_request() {
-
         // Verifies the nonce.
         check_ajax_referer( 'anys_nonce' );
 
@@ -79,7 +78,6 @@ final class Ajax {
 
         // Delegates to the module's AJAX handler.
         $handler->handle_ajax( $method, $payload );
-
     }
 
 }

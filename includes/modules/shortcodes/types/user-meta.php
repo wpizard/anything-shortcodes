@@ -16,10 +16,24 @@ use AnyS\Traits\Singleton;
 final class User_Meta extends Base {
     use Singleton;
 
+    /**
+     * Returns the shortcode type.
+     *
+     * @since NEXT
+     *
+     * @return string
+     */
     public function get_type() {
         return 'user-meta';
     }
 
+    /**
+     * Returns the default shortcode attributes.
+     *
+     * @since NEXT
+     *
+     * @return array
+     */
     protected function get_defaults() {
         return [
             'id'       => get_current_user_id(),
@@ -43,9 +57,10 @@ final class User_Meta extends Base {
      * @return string
      */
     public function render( array $attributes, string $content ) {
-        // Parse dynamic attributes
-        $attributes = anys_parse_dynamic_attributes( $attributes );
         $attributes = $this->get_attributes( $attributes );
+
+        // Parses dynamic attributes.
+        $attributes = anys_parse_dynamic_attributes( $attributes );
 
         $user_meta_key = $attributes['name'] ?? '';
         $user_id       = (int) $attributes['id'];
@@ -54,10 +69,10 @@ final class User_Meta extends Base {
             return '';
         }
 
-        // Fetch user meta
+        // Fetches user meta.
         $user_meta_value = get_user_meta( $user_id, $user_meta_key, true );
 
-        // Format and wrap
+        // Formats and wraps.
         $formatted_value = anys_format_value( $user_meta_value, $attributes );
         $output          = anys_wrap_output( $formatted_value, $attributes );
 

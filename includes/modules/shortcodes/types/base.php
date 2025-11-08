@@ -23,7 +23,7 @@ abstract class Base {
     abstract public function get_type();
 
     /**
-     * Returns the default attributes for this shortcode type.
+     * Returns the default shortcode attributes.
      *
      * @since NEXT
      *

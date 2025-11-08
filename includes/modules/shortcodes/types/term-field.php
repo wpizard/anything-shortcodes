@@ -16,10 +16,24 @@ use AnyS\Traits\Singleton;
 final class Term_Field extends Base {
     use Singleton;
 
+    /**
+     * Returns the shortcode type.
+     *
+     * @since NEXT
+     *
+     * @return string
+     */
     public function get_type() {
         return 'term-field';
     }
 
+    /**
+     * Returns the default shortcode attributes.
+     *
+     * @since NEXT
+     *
+     * @return array
+     */
     protected function get_defaults() {
         return [
             'id'       => 0,
@@ -44,9 +58,10 @@ final class Term_Field extends Base {
      * @return string
      */
     public function render( array $attributes, string $content ) {
-        // Parse dynamic attributes
-        $attributes = anys_parse_dynamic_attributes( $attributes );
         $attributes = $this->get_attributes( $attributes );
+
+        // Parses dynamic attributes.
+        $attributes = anys_parse_dynamic_attributes( $attributes );
 
         $term_field_name = $attributes['name'] ?? '';
         $term_id         = (int) ( $attributes['id'] ?? 0 );
@@ -65,13 +80,13 @@ final class Term_Field extends Base {
             return '';
         }
 
-        // Fetch the term
+        // Fetches the term.
         $term  = get_term( $term_id, $taxonomy_name );
         $value = ( $term && ! is_wp_error( $term ) && isset( $term->$term_field_name ) )
             ? $term->$term_field_name
             : '';
 
-        // Format and wrap
+        // Formats and wraps.
         $value  = anys_format_value( $value, $attributes );
         $output = anys_wrap_output( $value, $attributes );
 

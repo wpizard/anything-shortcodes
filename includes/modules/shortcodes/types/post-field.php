@@ -29,7 +29,7 @@ final class Post_Field extends Base {
     }
 
     /**
-     * Returns default attributes.
+     * Returns the default shortcode attributes.
      *
      * @since NEXT
      *
@@ -60,7 +60,7 @@ final class Post_Field extends Base {
     public function render( array $attributes, string $content ) {
         $attributes = $this->get_attributes( $attributes );
 
-        // Parses dynamic attributes first (security, caching, etc.).
+        // Parses dynamic attributes.
         $attributes = anys_parse_dynamic_attributes( $attributes );
 
         $key     = $attributes['name'];

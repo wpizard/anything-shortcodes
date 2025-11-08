@@ -16,10 +16,24 @@ use AnyS\Traits\Singleton;
 final class Option extends Base {
     use Singleton;
 
+    /**
+     * Returns the shortcode type.
+     *
+     * @since NEXT
+     *
+     * @return string
+     */
     public function get_type() {
         return 'option';
     }
 
+    /**
+     * Returns the default shortcode attributes.
+     *
+     * @since NEXT
+     *
+     * @return array
+     */
     protected function get_defaults() {
         return [
             'name'     => '',
@@ -42,24 +56,25 @@ final class Option extends Base {
      * @return string
      */
     public function render( array $attributes, string $content = '' ) {
-        // Parse dynamic attributes
-        $attributes = anys_parse_dynamic_attributes( $attributes );
         $attributes = $this->get_attributes( $attributes );
 
-        // Resolve option key
+        // Parses dynamic attributes.
+        $attributes = anys_parse_dynamic_attributes( $attributes );
+
+        // Resolves option key.
         $key = $attributes['name'] ?? '';
         if ( $key === '' ) {
             return '';
         }
 
-        // Fetch option
+        // Fetches option.
         $value = get_option( $key, '' );
 
-        // Format and wrap
+        // Formats and wraps.
         $value  = anys_format_value( $value, $attributes );
         $output = anys_wrap_output( $value, $attributes );
 
-        // Return sanitized output
+        // Returns sanitized output.
         return wp_kses_post( (string) $output );
     }
 }

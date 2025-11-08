@@ -16,8 +16,24 @@ use AnyS\Traits\Singleton;
 final class Link extends Base {
     use Singleton;
 
-    public function get_type() { return 'link'; }
+    /**
+     * Returns the shortcode type.
+     *
+     * @since NEXT
+     *
+     * @return string
+     */
+    public function get_type() {
+        return 'link';
+    }
 
+    /**
+     * Returns the default shortcode attributes.
+     *
+     * @since NEXT
+     *
+     * @return array
+     */
     protected function get_defaults() {
         return [
             'name'             => '',
@@ -47,9 +63,10 @@ final class Link extends Base {
      * @return string
      */
     public function render( array $attributes, string $content = '' ) {
-        // Parse dynamic attributes
-        $attributes = anys_parse_dynamic_attributes( $attributes );
         $attributes = $this->get_attributes( $attributes );
+
+        // Parses dynamic attributes.
+        $attributes = anys_parse_dynamic_attributes( $attributes );
 
         $name   = sanitize_key( $attributes['name'] ?? '' );
         $format = $attributes['format'] ?? 'raw';
@@ -83,11 +100,11 @@ final class Link extends Base {
          */
         $handlers = apply_filters( 'anys/link/handlers', $handlers );
 
-        // Resolve URL
+        // Resolves URL.
         $url   = isset( $handlers[ $name ] ) ? call_user_func( $handlers[ $name ], $attributes ) : '';
         $label = $attributes['label'] ?: ucfirst( $name );
 
-        // Adjust label for auth
+        // Adjusts label for auth.
         if ( $name === 'auth' ) {
             $label = is_user_logged_in()
                 ? ( $attributes['label_logged_in']  ?: esc_html__( 'Logout', 'anys' ) )
@@ -96,14 +113,15 @@ final class Link extends Base {
 
         $value = esc_url( $url );
 
-        // Build anchor
+        // Builds anchor.
         if ( $format === 'anchor' ) {
             $t = $target ? sprintf( ' target="%s"', esc_attr( $target ) ) : '';
             $value = sprintf( '<a href="%s"%s class="anys-link">%s</a>', esc_url( $url ), $t, esc_html( $label ) );
         }
 
-        // Wrap and return
+        // Wraps and returns.
         $output = anys_wrap_output( $value, $attributes );
+
         return wp_kses_post( $output );
     }
 }

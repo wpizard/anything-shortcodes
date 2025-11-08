@@ -2,7 +2,7 @@
 
 namespace AnyS\Modules;
 
-defined( 'ABSPATH' ) or die();
+defined( 'ABSPATH' ) || exit;
 
 use AnyS\Traits\Singleton;
 

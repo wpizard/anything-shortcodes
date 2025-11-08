@@ -16,10 +16,24 @@ use AnyS\Traits\Singleton;
 final class Post_Meta extends Base {
     use Singleton;
 
+    /**
+     * Returns the shortcode type.
+     *
+     * @since NEXT
+     *
+     * @return string
+     */
     public function get_type() {
         return 'post-meta';
     }
 
+    /**
+     * Returns the default shortcode attributes.
+     *
+     * @since NEXT
+     *
+     * @return array
+     */
     protected function get_defaults() {
         return [
             'id'       => get_the_ID(),
@@ -43,9 +57,10 @@ final class Post_Meta extends Base {
      * @return string
      */
     public function render( array $attributes, string $content ) {
-        // Parse dynamic attributes
-        $attributes = anys_parse_dynamic_attributes( $attributes );
         $attributes = $this->get_attributes( $attributes );
+
+        // Parses dynamic attributes.
+        $attributes = anys_parse_dynamic_attributes( $attributes );
 
         $key     = $attributes['name'] ?? '';
         $post_id = (int) $attributes['id'];
@@ -54,10 +69,10 @@ final class Post_Meta extends Base {
             return '';
         }
 
-        // Fetch meta
+        // Fetches meta.
         $value = get_post_meta( $post_id, $key, true );
 
-        // Format and wrap
+        // Formats and wraps.
         $value  = anys_format_value( $value, $attributes );
         $output = anys_wrap_output( $value, $attributes );
 

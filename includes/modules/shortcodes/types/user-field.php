@@ -16,10 +16,24 @@ use AnyS\Traits\Singleton;
 final class User_Field extends Base {
     use Singleton;
 
+    /**
+     * Returns the shortcode type.
+     *
+     * @since NEXT
+     *
+     * @return string
+     */
     public function get_type() {
         return 'user-field';
     }
 
+    /**
+     * Returns the default shortcode attributes.
+     *
+     * @since NEXT
+     *
+     * @return array
+     */
     protected function get_defaults() {
         return [
             'id'       => get_current_user_id(),
@@ -43,9 +57,10 @@ final class User_Field extends Base {
      * @return string
      */
     public function render( array $attributes, string $content ) {
-        // Parse dynamic attributes
-        $attributes = anys_parse_dynamic_attributes( $attributes );
         $attributes = $this->get_attributes( $attributes );
+
+        // Parses dynamic attributes.
+        $attributes = anys_parse_dynamic_attributes( $attributes );
 
         $key     = $attributes['name'] ?? '';
         $user_id = (int) $attributes['id'];
@@ -54,11 +69,11 @@ final class User_Field extends Base {
             return '';
         }
 
-        // Fetch user and field
+        // Fetches user and field.
         $user  = get_userdata( $user_id );
         $value = ( $user && isset( $user->$key ) ) ? $user->$key : '';
 
-        // Format and wrap
+        // Formats and wraps.
         $value  = anys_format_value( $value, $attributes );
         $output = anys_wrap_output( $value, $attributes );
 

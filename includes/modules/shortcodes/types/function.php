@@ -19,6 +19,8 @@ final class Function_Type extends Base {
     /**
      * Returns the shortcode type.
      *
+     * @since NEXT
+     *
      * @return string
      */
     public function get_type() {
@@ -26,7 +28,9 @@ final class Function_Type extends Base {
     }
 
     /**
-     * Returns default attributes.
+     * Returns the default shortcode attributes.
+     *
+     * @since NEXT
      *
      * @return array
      */
@@ -52,13 +56,12 @@ final class Function_Type extends Base {
      * @return string
      */
     public function render( array $attributes, string $content ) {
-        error_log('test');
-        // Parse dynamic attributes first
+        $attributes = $this->get_attributes( $attributes );
+
+        // Parses dynamic attributes.
         $attributes = anys_parse_dynamic_attributes( $attributes );
 
-        // Merge with defaults and normalize
-        $attributes = $this->get_attributes( $attributes );
-        // Extract function and arguments
+        // Extracts function and arguments.
         $parts    = array_map( 'trim', explode( ',', $attributes['name'] ?? '', 2 ) );
         $function = $parts[0] ?? '';
         $args_raw = $parts[1] ?? '';
@@ -67,7 +70,7 @@ final class Function_Type extends Base {
             return '';
         }
 
-        // Validate function existence
+        // Validates function existence
         if ( ! function_exists( $function ) ) {
             if ( current_user_can( 'manage_options' ) ) {
                 return sprintf(
@@ -79,7 +82,7 @@ final class Function_Type extends Base {
             return '';
         }
 
-        // Validate whitelist
+        // Validates whitelist.
         $whitelisted = (array) anys_get_whitelisted_functions();
         if ( ! in_array( $function, $whitelisted, true ) ) {
             if ( current_user_can( 'manage_options' ) ) {
@@ -98,7 +101,7 @@ final class Function_Type extends Base {
             return '';
         }
 
-        // Resolve arguments
+        // Resolves arguments.
         $tokens = $args_raw !== '' ? array_map( 'trim', explode( '|', $args_raw ) ) : [];
         $cache  = [];
         $args   = array_map(
@@ -108,7 +111,7 @@ final class Function_Type extends Base {
             $tokens
         );
 
-        // Remove empty-string args
+        // Removes empty-string args.
         $args = array_values(
             array_filter(
                 $args,
@@ -116,14 +119,14 @@ final class Function_Type extends Base {
             )
         );
 
-        // Execute target function
+        // Executes target function.
         $value = call_user_func_array( $function, $args );
 
-        // Format and wrap
+        // Formats and wraps.
         $value  = anys_format_value( $value, $attributes );
         $output = anys_wrap_output( $value, $attributes );
 
-        // Return sanitized output
+        // Returns sanitized output.
         return wp_kses_post( (string) $output );
     }
 }

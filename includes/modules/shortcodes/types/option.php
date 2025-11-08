@@ -1,34 +1,65 @@
 <?php
+
+namespace AnyS\Modules\Shortcodes\Types;
+
+defined( 'ABSPATH' ) || exit;
+
+use AnyS\Traits\Singleton;
+
 /**
- * Renders the [anys type="option"] shortcode output.
+ * Retrieves a WordPress option value and renders it.
  *
- * Retrieves a WordPress option value based on the option name.
+ * Handles the `[anys type="option"]` shortcode.
  *
- * Expected attributes:
- * - name: Option name (required)
- * - before: Content to prepend before the output (optional)
- * - after: Content to append after the output (optional)
- * - fallback: Content to display if the value is empty (optional)
- * - format: Formatting for date, datetime, number, etc. (optional)
- *
- * @since 1.0.0
+ * @since NEXT
  */
+final class Option extends Base {
+    use Singleton;
 
-defined( 'ABSPATH' ) || die();
+    public function get_type() {
+        return 'option';
+    }
 
-// Parses dynamic shortcode attributes.
-$attributes = anys_parse_dynamic_attributes( $attributes ?? [] );
+    protected function get_defaults() {
+        return [
+            'name'     => '',
+            'before'   => '',
+            'after'    => '',
+            'fallback' => '',
+            'format'   => '',
+        ];
+    }
 
-$key = $attributes['name'];
+    /**
+     * Renders the shortcode.
+     *
+     * @since 1.0.0
+     * @since NEXT Moved to class-based structure.
+     *
+     * @param array  $attributes Shortcode attributes.
+     * @param string $content    Enclosed content (optional).
+     *
+     * @return string
+     */
+    public function render( array $attributes, string $content = '' ) {
+        // Parse dynamic attributes
+        $attributes = anys_parse_dynamic_attributes( $attributes );
+        $attributes = $this->get_attributes( $attributes );
 
-// Retrieves the option value.
-$value = get_option( $key, '' );
+        // Resolve option key
+        $key = $attributes['name'] ?? '';
+        if ( $key === '' ) {
+            return '';
+        }
 
-// Applies formatting if specified.
-$value = anys_format_value( $value, $attributes );
+        // Fetch option
+        $value = get_option( $key, '' );
 
-// Wraps the output with before/after content and fallback.
-$output = anys_wrap_output( $value, $attributes );
+        // Format and wrap
+        $value  = anys_format_value( $value, $attributes );
+        $output = anys_wrap_output( $value, $attributes );
 
-// Outputs the sanitized content.
-echo wp_kses_post( $output );
+        // Return sanitized output
+        return wp_kses_post( (string) $output );
+    }
+}

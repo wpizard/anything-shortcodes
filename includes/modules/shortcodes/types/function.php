@@ -1,100 +1,129 @@
 <?php
+
+namespace AnyS\Modules\Shortcodes\Types;
+
+defined( 'ABSPATH' ) || exit;
+
+use AnyS\Traits\Singleton;
+
 /**
- * Renders the [anys type="function"] shortcode output.
+ * Executes a whitelisted PHP function with optional dynamic arguments.
  *
- * Executes a safe, whitelisted PHP function with optional arguments.
+ * Handles the `[anys type="function"]` shortcode.
  *
- * Expected attributes:
- * - name: Function name followed by optional arguments, separated by commas (required)
- *         Example: "date_i18n, Y", "date_i18n, F j, Y | 1730505600"
- * - before: Content to prepend before the output (optional)
- * - after: Content to append after the output (optional)
- * - fallback: Content to display if the value is empty (optional)
- * - format: Additional formatting for the returned value (optional)
- *
- * @since 1.1.0
+ * @since NEXT
  */
+final class Function_Type extends Base {
+    use Singleton;
 
-defined( 'ABSPATH' ) || die();
-
-// Parses dynamic shortcode attributes.
-$attributes = anys_parse_dynamic_attributes( $attributes ?? [] );
-
-// Splits the function name and arguments from the 'name' attribute.
-$parts = array_map( 'trim', explode( ',', $attributes['name'] ?? '', 2 ) );
-
-// Retrieves the function name.
-$function = array_shift( $parts );
-
-// Remaining string contains all arguments.
-$parts_string = $parts[0] ?? '';
-
-// Splits parts by pipe.
-$parts = array_map( 'trim', explode( '|', $parts_string ) );
-
-// Defines the whitelist of whitelisted functions for security.
-$whitelisted_functions = anys_get_whitelisted_functions();
-
-// Initializes the output value.
-$value = '';
-
-// Validates the function name.
-if ( ! $function ) {
-    return '';
-}
-
-// Checks if the function exists.
-if ( ! function_exists( $function ) ) {
-    if ( current_user_can( 'manage_options' ) ) {
-        echo sprintf(
-            /* translators: %s is the function name */
-            esc_html__( 'Function "%s" does not exist.', 'anys' ),
-            esc_html( $function )
-        );
+    /**
+     * Returns the shortcode type.
+     *
+     * @return string
+     */
+    public function get_type() {
+        return 'function';
     }
 
-    return '';
-}
+    /**
+     * Returns default attributes.
+     *
+     * @return array
+     */
+    protected function get_defaults() {
+        return [
+            'name'     => '',
+            'before'   => '',
+            'after'    => '',
+            'fallback' => '',
+            'format'   => '',
+        ];
+    }
 
-// Checks if the function is whitelisted.
-if ( ! in_array( $function, $whitelisted_functions, true ) ) {
-    if ( current_user_can( 'manage_options' ) ) {
-        $settings_url = admin_url( 'options-general.php?page=anys-settings' );
-        printf(
-            /* translators: %1$s is the function name, %2$s is the settings page URL */
-            esc_html__( 'Function "%1$s" is not whitelisted. Please %2$s.', 'anys' ),
-            esc_html( $function ),
-            sprintf(
-                '<a href="%s">%s</a>',
-                esc_url( $settings_url ),
-                esc_html__( 'add it to whitelisted Functions in settings', 'anys' )
+    /**
+     * Renders the shortcode.
+     *
+     * @since 1.1.0
+     * @since NEXT Moved to class-based structure.
+     *
+     * @param array  $attributes Shortcode attributes.
+     * @param string $content    Enclosed content (optional).
+     *
+     * @return string
+     */
+    public function render( array $attributes, string $content ) {
+        error_log('test');
+        // Parse dynamic attributes first
+        $attributes = anys_parse_dynamic_attributes( $attributes );
+
+        // Merge with defaults and normalize
+        $attributes = $this->get_attributes( $attributes );
+        // Extract function and arguments
+        $parts    = array_map( 'trim', explode( ',', $attributes['name'] ?? '', 2 ) );
+        $function = $parts[0] ?? '';
+        $args_raw = $parts[1] ?? '';
+
+        if ( $function === '' ) {
+            return '';
+        }
+
+        // Validate function existence
+        if ( ! function_exists( $function ) ) {
+            if ( current_user_can( 'manage_options' ) ) {
+                return sprintf(
+                    /* translators: %s is the function name */
+                    esc_html__( 'Function "%s" does not exist.', 'anys' ),
+                    esc_html( $function )
+                );
+            }
+            return '';
+        }
+
+        // Validate whitelist
+        $whitelisted = (array) anys_get_whitelisted_functions();
+        if ( ! in_array( $function, $whitelisted, true ) ) {
+            if ( current_user_can( 'manage_options' ) ) {
+                $settings_url = admin_url( 'options-general.php?page=anys-settings' );
+                return sprintf(
+                    /* translators: 1: function name, 2: settings url */
+                    esc_html__( 'Function "%1$s" is not whitelisted. Please %2$s.', 'anys' ),
+                    esc_html( $function ),
+                    sprintf(
+                        '<a href="%s">%s</a>',
+                        esc_url( $settings_url ),
+                        esc_html__( 'add it to whitelisted Functions in settings', 'anys' )
+                    )
+                );
+            }
+            return '';
+        }
+
+        // Resolve arguments
+        $tokens = $args_raw !== '' ? array_map( 'trim', explode( '|', $args_raw ) ) : [];
+        $cache  = [];
+        $args   = array_map(
+            static function ( $t ) use ( &$cache ) {
+                return anys_parse_dynamic_value( $t, $cache );
+            },
+            $tokens
+        );
+
+        // Remove empty-string args
+        $args = array_values(
+            array_filter(
+                $args,
+                static function ( $a ) { return $a !== ''; }
             )
         );
+
+        // Execute target function
+        $value = call_user_func_array( $function, $args );
+
+        // Format and wrap
+        $value  = anys_format_value( $value, $attributes );
+        $output = anys_wrap_output( $value, $attributes );
+
+        // Return sanitized output
+        return wp_kses_post( (string) $output );
     }
-
-    return '';
 }
-
-$cache = [];
-
-// Parses each argument dynamically.
-$args = array_map( function( $arg ) use ( &$cache ) {
-    return anys_parse_dynamic_value( $arg, $cache );
-}, $parts );
-
-// Removes empty strings (optional) to avoid passing to functions that take 0 args.
-$args = array_filter( $args, function( $arg ) {
-    return $arg !== '';
-} );
-
-// Calls the whitelisted function with the provided arguments.
-$value = call_user_func_array( $function, $args );
-
-// Applies formatting if specified.
-$value = anys_format_value( $value, $attributes );
-
-// Wraps the output with before/after content and fallback.
-$output = anys_wrap_output( $value, $attributes );
-
-// Outputs the sanitized content.
-echo wp_kses_post( $output );

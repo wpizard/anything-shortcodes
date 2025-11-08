@@ -1,39 +1,67 @@
 <?php
+
+namespace AnyS\Modules\Shortcodes\Types;
+
+defined( 'ABSPATH' ) || exit;
+
+use AnyS\Traits\Singleton;
+
 /**
- * Renders the [anys type="user-field"] shortcode output.
+ * Retrieves a standard user field and renders it.
  *
- * Retrieves a standard user field value based on the user ID and field name.
+ * Handles the `[anys type="user-field"]` shortcode.
  *
- * Expected attributes:
- * - id: User ID (optional, defaults to current user)
- * - name: User field name (required)
- * - before: Content to prepend before the output (optional)
- * - after: Content to append after the output (optional)
- * - fallback: Content to display if the value is empty (optional)
- * - format: Formatting for date, datetime, number, etc. (optional)
- *
- * @since 1.0.0
+ * @since NEXT
  */
+final class User_Field extends Base {
+    use Singleton;
 
-defined( 'ABSPATH' ) || die();
+    public function get_type() {
+        return 'user-field';
+    }
 
-// Parses dynamic shortcode attributes.
-$attributes = anys_parse_dynamic_attributes( $attributes ?? [] );
+    protected function get_defaults() {
+        return [
+            'id'       => get_current_user_id(),
+            'name'     => '',
+            'before'   => '',
+            'after'    => '',
+            'fallback' => '',
+            'format'   => '',
+        ];
+    }
 
-$key     = $attributes['name'];
-$user_id = ! empty( $attributes['id'] ) ? intval( $attributes['id'] ) : get_current_user_id();
+    /**
+     * Renders the shortcode.
+     *
+     * @since 1.0.0
+     * @since NEXT Moved to class-based structure.
+     *
+     * @param array  $attributes Shortcode attributes.
+     * @param string $content    Enclosed content (optional).
+     *
+     * @return string
+     */
+    public function render( array $attributes, string $content ) {
+        // Parse dynamic attributes
+        $attributes = anys_parse_dynamic_attributes( $attributes );
+        $attributes = $this->get_attributes( $attributes );
 
-// Retrieves user data object.
-$user = get_userdata( $user_id );
+        $key     = $attributes['name'] ?? '';
+        $user_id = (int) $attributes['id'];
 
-// Retrieves the user field value or empty string if not set.
-$value = ( $user && isset( $user->$key ) ) ? $user->$key : '';
+        if ( $key === '' || $user_id <= 0 ) {
+            return '';
+        }
 
-// Applies formatting if specified.
-$value = anys_format_value( $value, $attributes );
+        // Fetch user and field
+        $user  = get_userdata( $user_id );
+        $value = ( $user && isset( $user->$key ) ) ? $user->$key : '';
 
-// Wraps the output with before/after content and fallback.
-$output = anys_wrap_output( $value, $attributes );
+        // Format and wrap
+        $value  = anys_format_value( $value, $attributes );
+        $output = anys_wrap_output( $value, $attributes );
 
-// Outputs the sanitized content.
-echo wp_kses_post( $output );
+        return wp_kses_post( (string) $output );
+    }
+}

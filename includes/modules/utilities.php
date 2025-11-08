@@ -459,7 +459,7 @@ function anys_get_default_whitelisted_functions() {
 /**
  * Forces or overrides a single shortcode attribute.
  *
- * @since NEXT
+ * @since 1.4.0
  *
  * @param string $shortcode Single-tag shortcode (e.g. "[anys ...]").
  * @param string $attr      Attribute name.
@@ -488,7 +488,7 @@ function anys_force_shortcode_attr( $shortcode, $attr, $value ) {
 /**
  * Checks if content has any shortcode.
  *
- * @since NEXT
+ * @since 1.4.0
  *
  * @param string $content The content to check.
  *
@@ -505,7 +505,7 @@ function anys_has_shortcode( $content ) {
 /**
  * Returns a Jalali (Persian) formatted date similar to WordPress's date_i18n().
  *
- * @since NEXT
+ * @since 1.4.0
  *
  * @param string    $format
  * @param int|false $timestamp

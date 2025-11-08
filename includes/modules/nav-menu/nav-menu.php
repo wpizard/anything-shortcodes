@@ -1,46 +1,20 @@
 <?php
 
-namespace AnyS;
+namespace AnyS\Modules;
 
-defined( 'ABSPATH' ) || die();
+defined( 'ABSPATH' ) || exit;
+
+use AnyS\Traits\Singleton;
 
 /**
- * Integrates shortcodes in Nav Menu.
+ * Nav Menu module.
+ *
+ * Handles shortcode processing in navigation menus.
  *
  * @since 1.4.0
  */
 final class Nav_Menu {
-
-    /**
-     * The instance.
-     *
-     * @since 1.4.0
-     */
-    private static $instance;
-
-    /**
-     * Returns the instance.
-     *
-     * @since 1.4.0
-     *
-     * @return Nav_Menu
-     */
-    public static function get_instance() {
-        if ( is_null( self::$instance ) ) {
-            self::$instance = new self();
-        }
-
-        return self::$instance;
-    }
-
-    /**
-     * Constructor.
-     *
-     * @since 1.4.0
-     */
-    private function __construct() {
-        $this->add_hooks();
-    }
+    use Singleton;
 
     /**
      * Adds hooks.

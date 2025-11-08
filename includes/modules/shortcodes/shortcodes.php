@@ -1,98 +1,58 @@
 <?php
 
-namespace AnyS;
+namespace AnyS\Modules;
 
-defined( 'ABSPATH' ) or die();
+defined( 'ABSPATH' ) || exit;
+
+use AnyS\Traits\Singleton;
 
 /**
- * Registers the shortcodes.
+ * Shortcodes module.
+ *
+ * Handles the `[anys]` shortcode registration and rendering.
  *
  * @since 1.0.0
  * @since 1.1.0 Changes file name.
  */
-final class Register_Shortcodes {
+final class Shortcodes {
+    use Singleton;
 
     /**
-     * The instance.
-     *
-     * @since 1.0.0
-     */
-    private static $instance;
-
-    /**
-     * Returns the instance.
-     *
-     * @since 1.0.0
-     *
-     * @return Register_Shortcodes
-     */
-    public static function get_instance() {
-        if ( is_null( self::$instance ) ) {
-            self::$instance = new self();
-        }
-
-        return self::$instance;
-    }
-
-    /**
-     * Constructor.
-     *
-     * @since 1.0.0
-     */
-    private function __construct() {
-        $this->add_hooks();
-    }
-
-    /**
-     * Adds WordPress hooks.
+     * Adds hooks.
      *
      * @since 1.0.0
      */
     protected function add_hooks() {
-        add_action( 'init', [ $this, 'register_shortcodes' ] );
+        add_action( 'init', [ $this, 'register_shortcode' ] );
     }
 
     /**
-     * Registers Shortcodes the shortcode.
+     * Registers the `[anys]` shortcode.
      *
      * @since 1.0.0
      */
-    public function register_shortcodes() {
+    public function register_shortcode() {
+        // Requires the Base class before registering the shortcode.
+        $base_file = ANYS_MODULES_PATH . 'shortcodes/types/base.php';
+
+        if ( file_exists( $base_file ) ) {
+            require_once $base_file;
+        }
+
         add_shortcode( 'anys', [ $this, 'render_shortcode' ] );
     }
 
     /**
-     * Renders the shortcode.
+     * Renders the `[anys]` shortcode.
      *
      * @since 1.0.0
-     * @since 1.1.0 Changes hook names format.
      *
      * @param array  $attributes Shortcode attributes.
      * @param string $content    Shortcode content.
      *
      * @return string
      */
-    public function render_shortcode( $attributes, $content ) {
-        // Raw attributes are captured.
-        $raw_attributes = is_array( $attributes ) ? $attributes : [];
-
-        // Default attributes.
-        $defaults = [
-            'type'      => '',
-            'name'      => '',
-            'id'        => '',
-            'before'    => '',
-            'after'     => '',
-            'fallback'  => '',
-            'format'    => '',
-            'delimiter' => '',
-        ];
-
-        $attributes = shortcode_atts( $defaults, $attributes, 'anys' );
-
-        // Unknown keys are merged into normalized attributes.
-        $attributes = $this->merge_unknown_attributes( $attributes, $raw_attributes, $defaults );
-
+    public function render_shortcode( array $attributes, string $content = '' ) {
         /**
          * Filters the shortcode attributes before processing.
          *
@@ -139,14 +99,10 @@ final class Register_Shortcodes {
             $content
         );
 
-        ob_start();
-
         // Loads the matching handler file if it exists.
-        $file = ANYS_INCLUDES_PATH . "types/anys/{$attributes['type']}.php";
+        $file = ANYS_MODULES_PATH . "shortcodes/types/{$attributes['type']}.php";
 
-        if ( file_exists( $file ) ) {
-            require $file;
-        } else {
+        if ( ! file_exists( $file ) ) {
             /**
              * Fires when the handler file is missing.
              *
@@ -157,7 +113,52 @@ final class Register_Shortcodes {
                 $attributes,
                 $content
             );
+
+            return '';
         }
+
+        require_once $file;
+
+        // Build the class name based on the file type.
+        // $class_name = '\\AnyS\\Modules\\Shortcodes\\Types\\' . str_replace( '-', '_', ucfirst( $attributes['type'] ) );
+
+        // FIXME: Temporary workaround for handling the "function" shortcode type.
+        // Should be replaced with a dynamic class resolution method in future versions.
+        if($attributes['type'] == 'function'){
+            $class_name = '\\AnyS\\Modules\\Shortcodes\\Types\\Function_Type';
+        }else{
+            $class_name = '\\AnyS\\Modules\\Shortcodes\\Types\\' . str_replace( '-', '_', ucfirst( $attributes['type'] ) );
+        }
+
+        // Check if the class exists before calling render().
+        if ( ! class_exists( $class_name ) ) {
+            // Fires when the render method is missing.
+            do_action(
+                "anys/{$attributes['type']}/missing_class",
+                $attributes,
+                $content
+            );
+
+            return '';
+        }
+
+        $instance = $class_name::get_instance();
+
+        if ( ! method_exists( $instance, 'render' ) ) {
+            // Fires when the render method is missing.
+            do_action(
+                "anys/{$attributes['type']}/missing_render",
+                $attributes,
+                $content
+            );
+
+            return '';
+        }
+
+        // Captures the output.
+        ob_start();
+
+        echo $instance->render( $attributes, $content );
 
         $output = ob_get_clean();
 
@@ -197,12 +198,8 @@ final class Register_Shortcodes {
             $content
         );
 
-        // Returns output if the shortcode type is 'loop'.
-        if($attributes['type'] == 'loop'){
-            return $output;
-        }
-
-        return $output . do_shortcode( $content );
+        // Returns the final output.
+        return $output;
     }
 
     /**
@@ -226,8 +223,8 @@ final class Register_Shortcodes {
 }
 
 /**
- * Initializes the class.
+ * Initializes the module.
  *
  * @since 1.0.0
  */
-Register_Shortcodes::get_instance();
+Shortcodes::get_instance();

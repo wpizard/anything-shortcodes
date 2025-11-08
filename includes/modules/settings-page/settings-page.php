@@ -1,46 +1,20 @@
 <?php
 
-namespace BS5PC;
+namespace AnyS\Modules;
 
-defined( 'ABSPATH' ) || die();
+defined( 'ABSPATH' ) || exit;
+
+use AnyS\Traits\Singleton;
 
 /**
- * Settings Page Class.
+ * Settings Page module.
+ *
+ * Handles the plugin settings page in the WordPress admin.
  *
  * @since 1.1.0
  */
 final class Settings_Page {
-
-    /**
-     * The instance.
-     *
-     * @since 1.1.0
-     */
-    private static $instance;
-
-    /**
-     * Returns the instance.
-     *
-     * @since 1.1.0
-     *
-     * @return Settings_Page
-     */
-    public static function get_instance() {
-        if ( is_null( self::$instance ) ) {
-            self::$instance = new self();
-        }
-
-        return self::$instance;
-    }
-
-    /**
-     * Constructor.
-     *
-     * @since 1.1.0
-     */
-    private function __construct() {
-        $this->add_hooks();
-    }
+    use Singleton;
 
     /**
      * Adds hooks.

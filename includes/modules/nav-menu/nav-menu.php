@@ -48,8 +48,7 @@ final class Nav_Menu {
             $url_decoded = rawurldecode( html_entity_decode( $url_raw, ENT_QUOTES ) );
 
             if ( anys_has_shortcode( $url_decoded ) ) {
-                $output = do_shortcode( $url_decoded );
-                $item->url = trim( wp_strip_all_tags( (string) $output ) );
+                $item->url = $this->anys_resolve_menu_input($url_decoded, '');
             }
 
             // Processes shortcodes in title.
@@ -125,6 +124,115 @@ final class Nav_Menu {
             }
             echo '</div>';
         }
+    }
+
+    /**
+     * Normalizes unquoted shortcode attributes into a quoted form.
+     *
+     * Preserves internal spaces/commas and escapes internal double quotes.
+     *
+     * @since NEXT
+     *
+     * @param string $shortcode Shortcode input.
+     *
+     * @return string Quoted shortcode or original input on failure.
+     */
+    private function anys_quote_shortcode_attributes( string $shortcode ): string {
+        if ( ! preg_match( '/^\s*\[([A-Za-z0-9_\-]+)\s*(.*?)\]\s*$/s', $shortcode, $m ) ) {
+            return $shortcode;
+        }
+
+        $tag  = $m[1];
+        $body = $m[2];
+        $out  = '[' . $tag;
+
+        // Matches key=value pairs until the next key or closing bracket.
+        if ( preg_match_all(
+            '/([A-Za-z0-9_\-]+)=((?:(?!\s+[A-Za-z0-9_\-]+=).)*)/s',
+            $body,
+            $pairs,
+            PREG_SET_ORDER
+        ) ) {
+            foreach ( $pairs as $p ) {
+                $key = $p[1];
+                $val = rtrim( $p[2] ); // trims only trailing spaces at the end of value.
+                $val = str_replace( '"', '&quot;', $val );
+                $out .= ' ' . $key . '="' . $val . '"';
+            }
+            $out .= ']';
+            return $out;
+        }
+        return $shortcode;
+    }
+
+    /**
+     * Resolves a menu input that may embed a shortcode, optionally prefixed by a scheme.
+     *
+     * @since NEXT
+     *
+     * @param string $raw      Raw menu input.
+     * @param string $fallback Fallback URL on failure.
+     *
+     * @return string Resolved absolute URL or fallback.
+     */
+    private function anys_resolve_menu_input( string $raw, string $fallback = '' ): string {
+        $candidate = trim( $raw );
+
+        // Extracts optional http(s) scheme before the shortcode.
+        $forced_scheme = null;
+        if ( preg_match( '#^\s*(https?://)\s*(%5B|\[)#i', $candidate, $m ) ) {
+            $forced_scheme = stripos( $m[1], 'https://' ) === 0 ? 'https' : 'http';
+            // Strips the leading scheme to isolate the shortcode block.
+            $candidate = preg_replace( '#^\s*https?://\s*#i', '', $candidate, 1 );
+        }
+
+        // Decodes percent-encoded input.
+        if ( strpos( $candidate, '%' ) !== false ) {
+            $candidate = rawurldecode( $candidate );
+        }
+
+        // Handles an embedded shortcode.
+        if ( isset( $candidate[0] ) && $candidate[0] === '[' ) {
+            $normalized = $this->anys_quote_shortcode_attributes( $candidate );
+            $rendered   = do_shortcode( $normalized );
+            $value      = trim( wp_strip_all_tags( (string) $rendered ) );
+
+            if ( $value === '' ) {
+                return $fallback;
+            }
+
+            // Blocks unsafe schemes (security hardening).
+            if ( preg_match( '#^(?:javascript:|data:)#i', $value ) ) {
+                return $fallback;
+            }
+
+            // Allows non-HTTP schemes.
+            if ( preg_match( '#^(?:mailto:|tel:)#i', $value ) ) {
+                return $value;
+            }
+
+            // Handles protocol-relative URLs.
+            if ( strpos( $value, '//' ) === 0 ) {
+                return $forced_scheme ? $forced_scheme . ':' . $value : set_url_scheme( $value, 'https' );
+            }
+
+            // Normalizes scheme for absolute URLs when a scheme is forced.
+            if ( wp_http_validate_url( $value ) ) {
+                return $forced_scheme ? set_url_scheme( $value, $forced_scheme ) : $value;
+            }
+
+            // Builds an absolute URL from a relative path.
+            $path = ltrim( $value, '/' ); // Keeps query/fragment intact.
+            $base = $forced_scheme ? home_url( '/', $forced_scheme ) : home_url( '/' );
+            return rtrim( $base, '/' ) . '/' . $path;
+        }
+
+        // Normalizes plain URLs with the forced scheme when present.
+        if ( wp_http_validate_url( $candidate ) ) {
+            return $forced_scheme ? set_url_scheme( $candidate, $forced_scheme ) : $candidate;
+        }
+
+        return $fallback;
     }
 }
 

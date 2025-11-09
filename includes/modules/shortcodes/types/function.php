@@ -56,7 +56,6 @@ final class Function_Type extends Base {
      * @return string
      */
     public function render( array $attributes, string $content ) {
-        $attributes = $this->anys_merge_numeric_attributes($attributes);
         $attributes = $this->get_attributes( $attributes );
 
         // Parses dynamic attributes.
@@ -130,59 +129,4 @@ final class Function_Type extends Base {
         // Returns sanitized output.
         return wp_kses_post( (string) $output );
     }
-
-    /**
-     * Merges numeric attributes into the previous named key.
-     *
-     * @since NEXT
-     *
-     * @param array $attributes Parsed shortcode attributes.
-     *
-     * @return array
-     */
-    private function anys_merge_numeric_attributes( array $attributes ): array {
-        $normalized = [];
-        $buffer     = '';
-        $last_key   = null;
-        $appended   = [];
-
-        foreach ( $attributes as $key => $value ) {
-            // Collect numeric tokens.
-            if ( is_int( $key ) ) {
-                $val = trim( (string) $value );
-                if ( $val !== '' ) {
-                    $buffer .= ($buffer === '' ? '' : ' ') . $val;
-                }
-                continue;
-            }
-
-            // Append buffer to the previous named key.
-            if ( $last_key && $buffer !== '' ) {
-                $base = rtrim( (string) $normalized[$last_key], " \t\n\r\0\x0B," );
-                $sep  = empty( $appended[$last_key]) && !strpbrk( substr( $base, -1 ), ' ,' )
-                    ? ', '
-                    : ' ';
-                $normalized[$last_key] = $base . $sep . $buffer;
-                $appended[$last_key]   = true;
-                $buffer                = '';
-            }
-
-            // Store the current named key.
-            $normalized[$key] = trim( (string) $value );
-            $last_key         = $key;
-        }
-
-        // Flush any remaining buffer.
-        if ( $last_key && $buffer !== '' ) {
-            $base = rtrim( (string) $normalized[$last_key], " \t\n\r\0\x0B," );
-            $sep  = empty( $appended[$last_key]) && !strpbrk( substr( $base, -1 ), ' ,' )
-                ? ', '
-                : ' ';
-            $normalized[$last_key] = $base . $sep . $buffer;
-        }
-
-        return $normalized;
-    }
-
-
 }

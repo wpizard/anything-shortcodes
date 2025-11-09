@@ -7,7 +7,7 @@ defined( 'ABSPATH' ) || exit;
 use AnyS\Traits\Singleton;
 
 /**
- * Renders a saved Elementor template by ID and includes required assets.
+ * Renders an Elementor template by ID and enqueues required assets.
  *
  * Handles the `[anys type="elementor" name="template" id="123"]` shortcode.
  *
@@ -16,37 +16,25 @@ use AnyS\Traits\Singleton;
 final class Elementor extends Base {
     use Singleton;
 
-    /**
-     * Returns the shortcode type.
-     *
-     * @since NEXT
-     *
-     * @return string
-     */
+    /** Returns shortcode type. */
     public function get_type() {
         return 'elementor';
     }
 
-    /**
-     * Returns the default shortcode attributes.
-     *
-     * @since NEXT
-     *
-     * @return array
-     */
+    /** Returns default shortcode attributes. */
     protected function get_defaults() {
         return [
-            'name'     => '',
-            'id'       => 0,
-            'before'   => '',
-            'after'    => '',
+            'name' => '',
+            'id' => 0,
+            'before' => '',
+            'after' => '',
             'fallback' => '',
-            'format'   => '',
+            'format' => '',
         ];
     }
 
     /**
-     * Renders the shortcode.
+     * Renders shortcode output.
      *
      * @since NEXT
      *
@@ -55,27 +43,27 @@ final class Elementor extends Base {
      *
      * @return string
      */
-    public function render( array $attributes, string $content ) {
-        // Defaults merged.
+    public function render( array $attributes, string $content = '' ) {
+        // Merges defaults.
         $attributes = $this->get_attributes( $attributes );
 
-        // Dynamic attributes parsed.
+        // Parses dynamic attributes.
         $attributes = anys_parse_dynamic_attributes( $attributes );
 
-        // Provider validated.
+        // Validates provider.
         $provider_name = strtolower( (string) ( $attributes['name'] ?? '' ) );
         if ( $provider_name !== 'template' ) {
             return '';
         }
 
-        // Elementor presence validated.
+        // Validates Elementor presence.
         if ( ! did_action( 'elementor/loaded' ) || ! class_exists( '\Elementor\Plugin' ) ) {
             $value  = esc_html__( 'Elementor is not active.', 'anys' );
             $output = anys_wrap_output( $value, $attributes );
             return wp_kses_post( (string) $output );
         }
 
-        // ID validated.
+        // Validates template ID.
         $template_id = (int) ( $attributes['id'] ?? 0 );
         if ( $template_id <= 0 ) {
             $value  = esc_html__( 'Missing or invalid "id" attribute.', 'anys' );
@@ -83,7 +71,7 @@ final class Elementor extends Base {
             return wp_kses_post( (string) $output );
         }
 
-        // Template post fetched.
+        // Fetches template post.
         $template_post = get_post( $template_id );
         if ( ! $template_post ) {
             $value  = esc_html__( 'Template not found.', 'anys' );
@@ -91,17 +79,17 @@ final class Elementor extends Base {
             return wp_kses_post( (string) $output );
         }
 
-        // Post type validated.
+        // Validates post type.
         if ( get_post_type( $template_post ) !== 'elementor_library' ) {
             $value  = esc_html__( 'The provided ID is not an Elementor template.', 'anys' );
             $output = anys_wrap_output( $value, $attributes );
             return wp_kses_post( (string) $output );
         }
 
-        // Assets enqueued when needed.
+        // Enqueues assets when needed.
         $this->anys_maybe_enqueue_elementor_assets( $attributes );
 
-        // Template type read.
+        // Reads template type.
         $template_type = get_post_meta( $template_id, '_elementor_template_type', true ); // 'section' | 'page'
         if ( $template_type && ! in_array( $template_type, [ 'section', 'page' ], true ) ) {
             $value  = esc_html__( 'Unsupported Elementor template type.', 'anys' );
@@ -109,14 +97,14 @@ final class Elementor extends Base {
             return wp_kses_post( (string) $output );
         }
 
-        // Recursion prevented.
+        // Prevents recursion.
         if ( is_singular( 'elementor_library' ) && get_the_ID() === $template_id ) {
             $value  = esc_html__( 'Recursive rendering detected.', 'anys' );
             $output = anys_wrap_output( $value, $attributes );
             return wp_kses_post( (string) $output );
         }
 
-        // Cache key built.
+        // Builds cache key.
         $cache_key = sprintf(
             'anys_elem_tpl_%d_%s_%s',
             $template_id,
@@ -124,7 +112,7 @@ final class Elementor extends Base {
             $template_type ? $template_type : 'na'
         );
 
-        // Cached HTML returned if available (raw).
+        // Returns cached raw HTML when available.
         $cached_html = get_transient( $cache_key );
         if ( $cached_html !== false ) {
             // Raw HTML is intentionally not escaped to keep Elementor markup intact.
@@ -132,25 +120,25 @@ final class Elementor extends Base {
         }
 
         try {
-            // Template rendered.
+            // Renders template.
             $html = \Elementor\Plugin::instance()->frontend->get_builder_content_for_display( $template_id, true );
 
-            // Section wrapped when needed.
+            // Wraps section when needed.
             if ( $template_type === 'section' ) {
                 $html = '<div class="anys-elementor-section">' . $html . '</div>';
             }
 
-            // Empty state handled.
+            // Handles empty state.
             if ( ! $html ) {
                 $value  = esc_html__( 'Template is empty or cannot be rendered.', 'anys' );
                 $output = anys_wrap_output( $value, $attributes );
                 return wp_kses_post( (string) $output );
             }
 
-            // Cached for 10 minutes.
+            // Caches for 10 minutes.
             set_transient( $cache_key, $html, MINUTE_IN_SECONDS * 10 );
 
-            // Wrapped raw HTML returned.
+            // Returns wrapped raw HTML.
             return anys_wrap_output( $html, $attributes );
         } catch ( \Throwable $e ) {
             $value  = esc_html__( 'An error occurred while rendering the template.', 'anys' );
@@ -166,8 +154,8 @@ final class Elementor extends Base {
      *
      * @since NEXT
      */
-    private function anys_maybe_enqueue_elementor_assets( array $attributes ) : void {
-        // Validate context.
+    private function anys_maybe_enqueue_elementor_assets( array $attributes )  {
+        // Validates context.
         if ( 'elementor' !== strtolower( (string) ( $attributes['type'] ?? '' ) ) ) {
             return;
         }
@@ -175,29 +163,29 @@ final class Elementor extends Base {
             return;
         }
 
-        // Check Elementor.
+        // Checks Elementor.
         if ( ! did_action( 'elementor/loaded' ) || ! class_exists( '\Elementor\Plugin' ) ) {
             return;
         }
 
-        // Validate template id.
+        // Validates template ID.
         $id = isset( $attributes['id'] ) ? absint( $attributes['id'] ) : 0;
         if ( ! $id ) {
             return;
         }
 
-        // Enqueue core frontend CSS/JS.
+        // Enqueues core frontend CSS/JS.
         wp_enqueue_style( 'elementor-frontend' );
         wp_enqueue_style( 'elementor-icons' );
         wp_enqueue_script( 'elementor-frontend' );
 
-        // Enqueue Pro assets if available.
+        // Enqueues Pro assets when available.
         if ( did_action( 'elementor_pro/init' ) ) {
             wp_enqueue_style( 'elementor-pro-frontend' );
             wp_enqueue_script( 'elementor-pro-frontend' );
         }
 
-        // Let Elementor enqueue extra assets.
+        // Lets Elementor enqueue extra assets.
         $frontend = \Elementor\Plugin::instance()->frontend ?? null;
         if ( $frontend ) {
             if ( method_exists( $frontend, 'enqueue_styles' ) ) {
@@ -208,13 +196,13 @@ final class Elementor extends Base {
             }
         }
 
-        // Enqueue per-template CSS.
+        // Enqueues per-template CSS.
         if ( class_exists( '\Elementor\Core\Files\CSS\Post' ) ) {
             try {
                 $css = \Elementor\Core\Files\CSS\Post::create( $id );
                 $css->enqueue();
             } catch ( \Throwable ) {
-                // Silently ignored.
+                // Silently ignores errors.
             }
         }
     }

@@ -77,7 +77,7 @@ final class Shortcode_Tag extends Tag {
     public function render() {
         $raw = trim( (string) $this->get_settings( 'anys_shortcode' ) );
 
-        // Skip empty or invalid shortcode.
+        // Skips empty or invalid shortcode.
         if ( $raw === '' || ! preg_match( '/^\[[A-Za-z0-9_\-]+(?:\s+[^\]]+)?\]$/', $raw ) ) {
             return;
         }

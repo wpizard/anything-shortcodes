@@ -1,46 +1,40 @@
 <?php
 
-namespace AnyS\Elementor\Tags;
+namespace AnyS\Modules\Elementor;
 
-if ( ! defined( 'ABSPATH' ) ) { exit; }
+defined( 'ABSPATH' ) || exit;
 
 use Elementor\Core\DynamicTags\Tag;
 use Elementor\Controls_Manager;
 use Elementor\Modules\DynamicTags\Module as Dynamic_Tags_Module;
 
 /**
- * Dynamic Tag: Shortcode.
+ * Elementor Dynamic Tag for rendering shortcodes.
  *
  * @since NEXT
  */
-class Shortcode_Tag extends Tag {
+final class Shortcode_Tag extends Tag {
 
     /**
-     * Gets unique slug.
-     *
-     * @since NEXT
+     * Returns the tag slug.
      *
      * @return string
      */
     public function get_name() {
-        return 'anything-shortcode';
+        return 'anys-shortcode';
     }
 
     /**
-     * Gets title.
-     *
-     * @since NEXT
+     * Returns the tag label shown in Elementor.
      *
      * @return string
      */
     public function get_title() {
-        return esc_html__( 'Shortcode', 'anys' );
+        return esc_html__( 'Anything Shortcodes', 'anys' );
     }
 
     /**
-     * Gets group key.
-     *
-     * @since NEXT
+     * Returns the tag group name.
      *
      * @return string
      */
@@ -49,9 +43,7 @@ class Shortcode_Tag extends Tag {
     }
 
     /**
-     * Gets categories.
-     *
-     * @since NEXT
+     * Returns the tag categories.
      *
      * @return array
      */
@@ -60,45 +52,40 @@ class Shortcode_Tag extends Tag {
     }
 
     /**
-     * Registers controls.
+     * Registers Elementor controls for this tag.
      *
-     * @since NEXT
      * @return void
      */
     protected function register_controls() {
         $this->add_control(
             'anys_shortcode',
             [
-                /* Translators: Elementor control label. */
                 'label'       => esc_html__( 'Shortcode', 'anys' ),
-                'type'        => Controls_Manager::TEXT,
-                'placeholder' => '[my_shortcode attr="value"]',
+                'type'        => Controls_Manager::TEXTAREA,
+                'rows'        => 2,
+                'placeholder' => '[anys type="post-field" name="post_title"]',
                 'label_block' => true,
             ]
         );
     }
 
     /**
-     * Renders output.
-     *
-     * @since NEXT
+     * Renders the shortcode output.
      *
      * @return void
      */
     public function render() {
-        $raw = trim( (string) $this->get_settings('anys_shortcode') );
+        $raw = trim( (string) $this->get_settings( 'anys_shortcode' ) );
 
-        if ( $raw === '' ) {
-            return;
-        }
-
-        if ( ! preg_match( '/^\[[A-Za-z0-9_\-]+(?:\s+[^\]]+)?\]$/', $raw ) ) {
+        // Skip empty or invalid shortcode.
+        if ( $raw === '' || ! preg_match( '/^\[[A-Za-z0-9_\-]+(?:\s+[^\]]+)?\]$/', $raw ) ) {
             return;
         }
 
         $shortcode = wp_kses_post( $raw );
         $output    = do_shortcode( $shortcode );
 
-        echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+        echo $output;
     }
 }

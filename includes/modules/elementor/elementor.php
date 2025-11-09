@@ -1,72 +1,39 @@
 <?php
 
-namespace AnyS\Elementor;
+namespace AnyS\Modules\Elementor;
 
-if ( ! defined( 'ABSPATH' ) ) { exit; }
+defined( 'ABSPATH' ) || exit;
 
+use AnyS\Traits\Singleton;
 use Elementor\Core\DynamicTags\Manager as Tags_Manager;
 
 /**
- * Elementor integration for Anything Shortcodes.
+ * Integrates Anything Shortcodes with Elementor.
+ *
+ * Registers a custom dynamic tags group and the `[anys]` shortcode tag.
  *
  * @since NEXT
  */
 final class Elementor {
+    use Singleton;
 
     /**
-     * Instance.
-     *
-     * @since NEXT
-     *
-     * @var Elementor|null
-     */
-    private static $instance = null;
-
-    /**
-     * Gets instance.
-     *
-     * @since NEXT
-     *
-     * @return Elementor
-     */
-    public static function get_instance() {
-        if ( null === self::$instance ) {
-            self::$instance = new self();
-        }
-
-        return self::$instance;
-    }
-
-    /**
-     * Constructor.
-     *
-     * @since NEXT
-     */
-    private function __construct() {
-        add_action( 'elementor/init', [ $this, 'add_hooks' ] );
-    }
-
-    /**
-     * Adds hooks.
-     *
-     * @since NEXT
+     * Initializes Elementor hooks.
      *
      * @return void
      */
-    public function add_hooks() {
+    protected function add_hooks() : void {
         add_action( 'elementor/dynamic_tags/register', [ $this, 'register_dynamic_tags' ] );
     }
 
     /**
-     * Registers group and tag.
+     * Registers the custom dynamic tag group and tag.
      *
-     * @since NEXT
-     *
-     * @param Tags_Manager $dynamic_tags Elementor manager.
-     *
+     * @param Tags_Manager $dynamic_tags Elementor dynamic tags manager.
+     * 
      * @return void
      */
-    public function register_dynamic_tags( Tags_Manager $dynamic_tags ) {
+    public function register_dynamic_tags( Tags_Manager $dynamic_tags ) : void {
         $dynamic_tags->register_group(
             'anything-shortcodes',
             [ 'title' => esc_html__( 'Anything Shortcodes', 'anys' ) ]
@@ -74,8 +41,18 @@ final class Elementor {
 
         require_once __DIR__ . '/shortcode-tag.php';
 
-        $dynamic_tags->register( new Tags\Shortcode_Tag() );
+        $dynamic_tags->register( new Shortcode_Tag() );
+    }
+
+    /**
+     * Bootstraps the module instance.
+     *
+     * @return void
+     */
+    public static function init() : void {
+        self::get_instance();
     }
 }
 
-Elementor::get_instance();
+// Initialize the integration.
+Elementor::init();

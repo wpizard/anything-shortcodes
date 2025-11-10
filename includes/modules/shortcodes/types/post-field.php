@@ -14,7 +14,7 @@ use AnyS\Modules\Shortcodes\Types\Base;
  *
  * @since NEXT
  */
-final class Post_Field extends Base {
+final class Post_Field_Type extends Base {
     use Singleton;
 
     /**
@@ -79,10 +79,3 @@ final class Post_Field extends Base {
         return wp_kses_post( $output ) . do_shortcode( $content );
     }
 }
-
-/**
- * Initializes the module.
- *
- * @since NEXT
- */
-Post_Field::get_instance();

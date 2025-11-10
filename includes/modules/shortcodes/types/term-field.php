@@ -13,7 +13,7 @@ use AnyS\Traits\Singleton;
  *
  * @since NEXT
  */
-final class Term_Field extends Base {
+final class Term_Field_Type extends Base {
     use Singleton;
 
     /**

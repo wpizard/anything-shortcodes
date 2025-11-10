@@ -13,7 +13,7 @@ use AnyS\Traits\Singleton;
  *
  * @since NEXT
  */
-final class Post_Meta extends Base {
+final class Post_Meta_Type extends Base {
     use Singleton;
 
     /**

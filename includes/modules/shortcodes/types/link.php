@@ -13,7 +13,7 @@ use AnyS\Traits\Singleton;
  *
  * @since NEXT
  */
-final class Link extends Base {
+final class Link_Type extends Base {
     use Singleton;
 
     /**

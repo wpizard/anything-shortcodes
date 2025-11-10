@@ -13,7 +13,7 @@ use AnyS\Traits\Singleton;
  *
  * @since NEXT
  */
-final class Option extends Base {
+final class Option_Type extends Base {
     use Singleton;
 
     /**

@@ -120,15 +120,7 @@ final class Shortcodes {
         require_once $file;
 
         // Build the class name based on the file type.
-        // $class_name = '\\AnyS\\Modules\\Shortcodes\\Types\\' . str_replace( '-', '_', ucfirst( $attributes['type'] ) );
-
-        // FIXME: Temporary workaround for handling the "function" shortcode type.
-        // Should be replaced with a dynamic class resolution method in future versions.
-        if($attributes['type'] == 'function'){
-            $class_name = '\\AnyS\\Modules\\Shortcodes\\Types\\Function_Type';
-        }else{
-            $class_name = '\\AnyS\\Modules\\Shortcodes\\Types\\' . str_replace( '-', '_', ucfirst( $attributes['type'] ) );
-        }
+        $class_name = '\\AnyS\\Modules\\Shortcodes\\Types\\' . str_replace( '-', '_', ucfirst( $attributes['type'] ) . '_Type' );
 
         // Check if the class exists before calling render().
         if ( ! class_exists( $class_name ) ) {

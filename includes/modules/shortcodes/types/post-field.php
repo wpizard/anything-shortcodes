@@ -79,10 +79,3 @@ final class Post_Field_Type extends Base {
         return wp_kses_post( $output ) . do_shortcode( $content );
     }
 }
-
-/**
- * Initializes the module.
- *
- * @since NEXT
- */
-Post_Field_Type::get_instance();

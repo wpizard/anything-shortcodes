@@ -24,6 +24,8 @@ final class Assets {
     protected function add_hooks() {
         add_action( 'init', [ $this, 'register_assets' ] );
         add_action( 'wp_head', [ $this, 'localize_data' ] );
+
+        add_filter( 'script_loader_tag', [ $this, 'force_module_type' ], 9999, 3 );
     }
 
     /**
@@ -47,6 +49,14 @@ final class Assets {
                     'deps'      => [],
                     'version'   => ANYS_VERSION,
                     'in_footer' => true,
+                    'is_module' => false,
+                ],
+                'anys-spoilerjs' => [
+                    'src'       => ANYS_ASSETS_URL . 'vendor/spoilerjs/spoiler-span.js',
+                    'deps'      => [],
+                    'version'   => ANYS_VERSION,
+                    'in_footer' => true,
+                    'is_module' => true,
                 ],
             ],
         ];
@@ -85,7 +95,12 @@ final class Assets {
                     $script['version'] ?? false,
                     $script['in_footer'] ?? true
                 );
+
+                if ( ! empty( $script['is_module'] ) && $script['is_module'] ) {
+                    wp_script_add_data( $handle, 'type', 'module' );
+                }
             }
+
         }
     }
 
@@ -103,6 +118,21 @@ final class Assets {
             ] ); ?>;
         </script>
         <?php
+    }
+
+    /**
+     * Force type="module" for spoilerjs handle.
+     *
+     * @since NEXT
+     */
+    public function force_module_type( $tag, $handle, $src ) {
+        if ( $handle === 'anys-spoilerjs' ) {
+            // If type attr is missing, inject it.
+            if ( strpos( $tag, ' type=' ) === false ) {
+                $tag = str_replace( '<script ', '<script type="module" ', $tag );
+            }
+        }
+        return $tag;
     }
 }
 

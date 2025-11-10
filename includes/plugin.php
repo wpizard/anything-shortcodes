@@ -59,7 +59,7 @@ final class Plugin {
      * @since 1.1.0 Changes Shortcode constant to Types.
      */
     protected function define_constants() {
-        define( 'ANYS_NAME', esc_html__( 'Anything Shortcodes', 'anys' ) );
+        define( 'ANYS_NAME', 'Anything Shortcodes' );
         define( 'ANYS_SLUG', 'anys' );
         define( 'ANYS_VERSION', '1.4.0' );
 

@@ -63,7 +63,7 @@ trait Singleton {
         // Gets the module's directory (where the class file is located).
         $reflector      = new \ReflectionClass( $this );
         $dir            = dirname( $reflector->getFileName() );
-        $functions_file = $dir . '/functions.php';
+        $functions_file = $dir . '/helpers.php';
 
         if ( file_exists( $functions_file ) ) {
             require_once $functions_file;

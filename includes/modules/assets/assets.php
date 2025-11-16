@@ -123,6 +123,8 @@ final class Assets {
     /**
      * Force type="module" for spoilerjs handle.
      *
+     * @todo Remove once core script data reliably sets type="module".
+     *
      * @since NEXT
      */
     public function force_module_type( $tag, $handle, $src ) {

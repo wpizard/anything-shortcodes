@@ -61,12 +61,12 @@ trait Singleton {
      */
     protected function load_helpers() {
         // Gets the module's directory (where the class file is located).
-        $reflector   = new \ReflectionClass( $this );
-        $dir         = dirname( $reflector->getFileName() );
-        $helper_file = $dir . '/helpers.php';
+        $reflector    = new \ReflectionClass( $this );
+        $dir          = dirname( $reflector->getFileName() );
+        $helpers_file = $dir . '/helpers.php';
 
-        if ( file_exists( $helper_file ) ) {
-            require_once $helper_file;
+        if ( file_exists( $helpers_file ) ) {
+            require_once $helpers_file;
         }
     }
 }

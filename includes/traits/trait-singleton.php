@@ -43,7 +43,7 @@ trait Singleton {
      * @since NEXT
      */
     protected function __construct() {
-        $this->load_functions();
+        $this->load_helpers();
         $this->add_hooks();
     }
 
@@ -55,18 +55,18 @@ trait Singleton {
     protected function add_hooks() {}
 
     /**
-     * Loads helper file for the module if it exists.
+     * Loads helpers file for the module if it exists.
      *
      * @since NEXT
      */
-    protected function load_functions() {
+    protected function load_helpers() {
         // Gets the module's directory (where the class file is located).
-        $reflector      = new \ReflectionClass( $this );
-        $dir            = dirname( $reflector->getFileName() );
-        $functions_file = $dir . '/helpers.php';
+        $reflector    = new \ReflectionClass( $this );
+        $dir          = dirname( $reflector->getFileName() );
+        $helpers_file = $dir . '/helpers.php';
 
-        if ( file_exists( $functions_file ) ) {
-            require_once $functions_file;
+        if ( file_exists( $helpers_file ) ) {
+            require_once $helpers_file;
         }
     }
 }

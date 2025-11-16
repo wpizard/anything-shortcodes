@@ -3,7 +3,7 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Returns the cache instance.
+ * Returns the Cache instance.
  *
  * @since NEXT
  *

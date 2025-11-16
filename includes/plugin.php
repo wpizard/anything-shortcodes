@@ -143,6 +143,8 @@ final class Plugin {
         // Loads includes dynamically.
         $modules = [
             'utilities.php',
+            'cache/cache.php',
+            'query/query.php',
             'settings-page/settings-page.php',
             'shortcodes/shortcodes.php',
             'nav-menu/nav-menu.php',

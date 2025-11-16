@@ -43,7 +43,7 @@ final class Cache {
      * @since NEXT
      */
     private function __construct() {
-        $this->object_cache_enabled = wp_using_ext_object_cache();
+        $this->object_cache_enabled = (bool) wp_using_ext_object_cache();
     }
 
     /**

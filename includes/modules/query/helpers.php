@@ -1,20 +1,16 @@
 <?php
 
-namespace AnyS\Modules\Query;
-
 defined( 'ABSPATH' ) || exit;
 
-use AnyS\Modules\Query\Query;
-
 /**
- * Returns the global Query instance.
+ * Returns the Query instance.
  *
  * @since NEXT
  *
- * @return \AnyS\Modules\Query\Query
+ * @return \AnyS\Modules\Query
  */
-function anys_query(): Query {
-    return Query::get_instance();
+function anys_query(): \AnyS\Modules\Query {
+    return \AnyS\Modules\Query::get_instance();
 }
 
 /**

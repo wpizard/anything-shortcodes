@@ -36,25 +36,11 @@ final class Query {
     protected int $default_ttl = 43200;
 
     /**
-     * Adds WordPress hooks for clearing cache and TTL filter.
+     * Adds hooks.
      *
      * @since NEXT
      */
     protected function add_hooks(): void {
-        // Clear cache on post changes.
-        add_action( 'save_post', [ $this, 'clear_cache_on_post_change' ], 10, 3 );
-        add_action( 'deleted_post', [ $this, 'clear_cache_on_post_change' ], 10, 1 );
-        add_action( 'trash_post', [ $this, 'clear_cache_on_post_change' ], 10, 1 );
-
-        // Clear cache on term changes.
-        add_action( 'created_term', [ $this, 'clear_cache_on_term_change' ], 10, 3 );
-        add_action( 'edited_term', [ $this, 'clear_cache_on_term_change' ], 10, 3 );
-        add_action( 'delete_term', [ $this, 'clear_cache_on_term_change' ], 10, 3 );
-
-        // Clear cache on user changes.
-        add_action( 'profile_update', [ $this, 'clear_cache_on_user_change' ], 10, 2 );
-        add_action( 'delete_user', [ $this, 'clear_cache_on_user_change' ], 10, 1 );
-
         // Filter for default TTL.
         add_filter( 'anys/query/default_ttl', [ $this, 'filter_default_ttl' ] );
     }
@@ -65,6 +51,7 @@ final class Query {
      * @since NEXT
      *
      * @param int $ttl Current TTL.
+     *
      * @return int Filtered TTL.
      */
     public function filter_default_ttl( int $ttl ): int {
@@ -129,8 +116,6 @@ final class Query {
         $ttl = $ttl ?? $this->filter_default_ttl( $this->default_ttl );
 
         anys_cache_set( $key, $value, $ttl, $this->cache_group );
-
-        do_action( 'anys/query/cache_set', $key, $value, $ttl );
     }
 
     /**
@@ -148,8 +133,6 @@ final class Query {
         }
 
         anys_cache_delete( $key, $this->cache_group );
-
-        do_action( 'anys/query/cache_cleared', $key );
     }
 
     /**
@@ -161,8 +144,6 @@ final class Query {
      */
     public function clear_all_cache(): void {
         anys_cache_flush( $this->cache_group );
-
-        do_action( 'anys/query/cleared_all' );
     }
 
     /**
@@ -308,56 +289,6 @@ final class Query {
         do_action( 'anys/query/after', $query_type, $sql, $results );
 
         return $results;
-    }
-
-    /**
-     * Clears cache on post changes.
-     *
-     * @since NEXT
-     *
-     * @param int        $post_id Post ID.
-     * @param \WP_Post|null $post  Post object.
-     * @param bool|null  $update Whether updating an existing post.
-     */
-    public function clear_cache_on_post_change( $post_id, $post = null, $update = null ): void {
-        $handled = (bool) apply_filters( 'anys/query/clear_on_post_change', false, $post_id, compact('post','update') );
-
-        if ( $handled ) return;
-
-        $this->clear_all_cache();
-    }
-
-    /**
-     * Clears cache on term changes.
-     *
-     * @since NEXT
-     *
-     * @param int    $term_id Term ID.
-     * @param int    $tt_id   Term taxonomy ID.
-     * @param string $taxonomy Taxonomy slug.
-     */
-    public function clear_cache_on_term_change( $term_id, $tt_id = 0, $taxonomy = '' ): void {
-        $handled = (bool) apply_filters( 'anys/query/clear_on_term_change', false, $term_id, compact('tt_id','taxonomy') );
-
-        if ( $handled ) return;
-
-        $this->clear_all_cache();
-    }
-
-    /**
-     * Clears cache on user changes.
-     *
-     * @since NEXT
-     *
-     * @param int        $user_id User ID.
-     * @param mixed|null $old_data Previous user data.
-     */
-    public function clear_cache_on_user_change( $user_id, $old_data = null ): void {
-        $handled = (bool) apply_filters( 'anys/query/clear_on_user_change', false, $user_id, compact('old_data') );
-
-        if ( $handled ) return;
-
-        $this->clear_all_cache();
     }
 }
 

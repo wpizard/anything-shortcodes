@@ -76,7 +76,7 @@ final class Cache {
      *
      * @param string $key   Cache key.
      * @param mixed  $value Value to cache.
-     * @param int    $ttl   Time-to-live in seconds. 0 means no expiration.
+     * @param int    $ttl   Time-to-live in seconds. 0 means no expiration (defaults to 1 day).
      * @param string $group Cache group (default: 'default').
      *
      * @return bool Whether the cache was successfully set.
@@ -86,13 +86,24 @@ final class Cache {
         $group = sanitize_key( $group );
 
         if ( $this->object_cache_enabled ) {
-            return wp_cache_set( $key, $value, $group, $ttl );
+            $result = wp_cache_set( $key, $value, $group, $ttl );
+        } else {
+            // Defaults to 1 day if TTL is not provided.
+            $ttl    = $ttl ?: DAY_IN_SECONDS;
+            $result = set_transient( $key, $value, $ttl );
         }
 
-        // Falls back to transient cache.
-        $ttl = $ttl ?: DAY_IN_SECONDS;
+        /**
+         * Fires after a cache item is set.
+         *
+         * @param string $key   The full cache key used.
+         * @param mixed  $value The cached value.
+         * @param int    $ttl   The TTL that was used in seconds.
+         * @param string $group The cache group.
+         */
+        do_action( 'anys/cache/set', $key, $value, $ttl, $group );
 
-        return set_transient( $key, $value, $ttl );
+        return (bool) $result;
     }
 
     /**
@@ -110,10 +121,20 @@ final class Cache {
         $group = sanitize_key( $group );
 
         if ( $this->object_cache_enabled ) {
-            return wp_cache_delete( $key, $group );
+            $result = wp_cache_delete( $key, $group );
+        } else {
+            $result = delete_transient( $key );
         }
 
-        return delete_transient( $key );
+        /**
+         * Fires after a cache item is deleted.
+         *
+         * @param string $key   The full cache key that was deleted.
+         * @param string $group The cache group.
+         */
+        do_action( 'anys/cache/deleted', $key, $group );
+
+        return (bool) $result;
     }
 
     /**
@@ -129,14 +150,22 @@ final class Cache {
         if ( $this->object_cache_enabled ) {
             if ( is_null( $group ) ) {
                 wp_cache_flush();
+
+                do_action( 'anys/cache/flushed', null );
+
                 return;
             }
 
             if ( function_exists( 'wp_cache_delete_multiple' ) ) {
                 wp_cache_delete_multiple( [], $group );
+
+                do_action( 'anys/cache/flushed', $group );
+
+                return;
             }
 
             // No native group flush available — bail early.
+            do_action( 'anys/cache/flushed', $group );
             return;
         }
 
@@ -158,6 +187,8 @@ final class Cache {
                 $timeout_like
             )
         );
+
+        do_action( 'anys/cache/flushed', $group );
     }
 
     /**

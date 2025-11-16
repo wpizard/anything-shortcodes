@@ -147,6 +147,7 @@ final class Plugin {
             'shortcodes/shortcodes.php',
             'nav-menu/nav-menu.php',
             'elementor/elementor.php',
+            'assets/assets.php',
         ];
 
         foreach ( $modules as $module ) {

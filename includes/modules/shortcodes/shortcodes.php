@@ -78,7 +78,7 @@ final class Shortcodes {
         }
 
         // Bails early if no type or name is provided.
-        if ( empty( $attributes['type'] ) || empty( $attributes['name'] ) ) {
+        if ( empty( $attributes['type'] ) && empty( $attributes['name'] ) ) {
             return '';
         }
 

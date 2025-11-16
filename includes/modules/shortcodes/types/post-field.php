@@ -67,7 +67,25 @@ final class Post_Field_Type extends Base {
         $post_id = intval( $attributes['id'] );
 
         $post  = get_post( $post_id );
-        $value = ( $post && isset( $post->$key ) ) ? $post->$key : '';
+        $value = '';
+
+        if ( $post instanceof \WP_Post ) {
+            switch ( strtolower( $key ) ) {
+
+                // Dynamically added / computed fields
+                case 'permalink':
+                case 'post_link':
+                case 'post_url':
+                    $value = get_permalink( $post_id );
+                    $value = $value ? esc_url( $value ) : '';
+                    break;
+
+                // Default fallback: direct WP_Post property
+                default:
+                    $value = isset( $post->{$key} ) ? $post->{$key} : '';
+                    break;
+            }
+        }
 
         // Formats the value if needed.
         $value = anys_format_value( $value, $attributes );

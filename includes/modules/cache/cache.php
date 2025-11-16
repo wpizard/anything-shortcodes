@@ -44,6 +44,8 @@ final class Cache {
      */
     private function __construct() {
         $this->object_cache_enabled = (bool) wp_using_ext_object_cache();
+
+        $this->load_helpers();
     }
 
     /**

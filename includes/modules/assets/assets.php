@@ -54,7 +54,7 @@ final class Assets {
                 'anys-spoilerjs' => [
                     'src'       => ANYS_ASSETS_URL . 'vendor/spoilerjs/spoiler-span.js',
                     'deps'      => [],
-                    'version'   => ANYS_VERSION,
+                    'version'   => '0.2.0',
                     'in_footer' => true,
                     'is_module' => true,
                 ],

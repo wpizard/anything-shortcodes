@@ -68,53 +68,47 @@ final class Term_Meta_Type extends Base {
         $taxonomy  = sanitize_key( $attributes['taxonomy'] );
         $single_in = strtolower( $attributes['single'] );
 
-        // Resolves term ID.
+        // Resolves the term ID.
         $term_id = (int) $attributes['id'];
 
-        if ( $term_id <= 0 ) {
+        if ( $term_id <= 0 && is_tax() ) {
             $queried = get_queried_object();
 
-            if ( $queried instanceof \WP_Term ) {
-                if ( $taxonomy === '' || $taxonomy === $queried->taxonomy ) {
-                    $term_id = (int) $queried->term_id;
+            if ( isset( $queried->term_id ) ) {
+                $term_id = (int) $queried->term_id;
 
-                    if ( $taxonomy === '' ) {
-                        $taxonomy = $queried->taxonomy;
-                    }
+                // Auto fills taxonomy when missing.
+                if ( $taxonomy === '' && isset( $queried->taxonomy ) ) {
+                    $taxonomy = sanitize_key( $queried->taxonomy );
                 }
             }
         }
 
-        // Normalizes single flag.
+        // Normalizes the single flag.
         $single = ! in_array( $single_in, [ '0', 'false', 'no' ], true );
 
         $value = '';
 
-        if ( $term_id > 0 && $meta_key !== '' ) {
-            $raw = get_term_meta( $term_id, $meta_key, $single );
-
-            if ( is_array( $raw ) ) {
-                // Implodes array values.
-                $value = implode( ', ', array_map( 'strval', $raw ) );
-            } else {
-                $value = (string) $raw;
-            }
+        if ( $term_id > 0 ) {
+            $value = get_term_meta( $term_id, $meta_key, $single );
         }
 
-        // Formats value.
+        if ( is_array( $value ) ) {
+            $value = array_map( 'strval', $value );
+            // Implodes array values.
+            $value = implode( ', ', $value );
+        }
+
+        // Formats the value.
         $value = anys_format_value( $value, $attributes );
 
-        // Wraps output.
+        // Wraps the output.
         $output = anys_wrap_output( $value, $attributes );
 
-        // Sanitizes output.
+        // Sanitizes the output.
         $output = wp_kses_post( $output );
-
-        // Appends content.
-        if ( $content !== '' ) {
-            $output .= do_shortcode( $content );
-        }
 
         return $output;
     }
+
 }

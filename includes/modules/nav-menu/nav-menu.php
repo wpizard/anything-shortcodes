@@ -48,7 +48,7 @@ final class Nav_Menu {
             $url_decoded = rawurldecode( html_entity_decode( $url_raw, ENT_QUOTES ) );
 
             if ( anys_has_shortcode( $url_decoded ) ) {
-                $item->url = $this->anys_resolve_menu_input($url_decoded, '');
+                $item->url = $this->resolve_menu_input($url_decoded, '');
             }
 
             // Processes shortcodes in title.
@@ -137,7 +137,7 @@ final class Nav_Menu {
      *
      * @return string Quoted shortcode or original input on failure.
      */
-    private function anys_quote_shortcode_attributes( string $shortcode ): string {
+    private function quote_shortcode_attributes( string $shortcode ): string {
         if ( ! preg_match( '/^\s*\[([A-Za-z0-9_\-]+)\s*(.*?)\]\s*$/s', $shortcode, $m ) ) {
             return $shortcode;
         }
@@ -175,7 +175,7 @@ final class Nav_Menu {
      *
      * @return string Resolved absolute URL or fallback.
      */
-    private function anys_resolve_menu_input( string $raw, string $fallback = '' ): string {
+    private function resolve_menu_input( string $raw, string $fallback = '' ): string {
         $candidate = trim( $raw );
 
         // Extracts optional http(s) scheme before the shortcode.
@@ -193,16 +193,11 @@ final class Nav_Menu {
 
         // Handles an embedded shortcode.
         if ( isset( $candidate[0] ) && $candidate[0] === '[' ) {
-            $normalized = $this->anys_quote_shortcode_attributes( $candidate );
+            $normalized = $this->quote_shortcode_attributes( $candidate );
             $rendered   = do_shortcode( $normalized );
             $value      = trim( wp_strip_all_tags( (string) $rendered ) );
 
             if ( $value === '' ) {
-                return $fallback;
-            }
-
-            // Blocks unsafe schemes (security hardening).
-            if ( preg_match( '#^(?:javascript:|data:)#i', $value ) ) {
                 return $fallback;
             }
 

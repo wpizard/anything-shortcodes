@@ -68,8 +68,16 @@ final class Qr_Type extends Base {
 
         // Enqueues frontend scripts.
         if ( ! is_admin() ) {
-            wp_enqueue_script( 'anys-qr-animation' );
+
+            // Base QR script.
+            wp_enqueue_script( 'anys-qr-code' );
+
+            // Animation script if needed.
+            if ( ! empty( $attributes['animation'] ) ) {
+                wp_enqueue_script( 'anys-qr-animation' );
+            }
         }
+
 
         // Resolves QR contents.
         $resolved_contents = '';

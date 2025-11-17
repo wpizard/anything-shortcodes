@@ -49,7 +49,6 @@ final class Assets {
                     'deps'      => [],
                     'version'   => ANYS_VERSION,
                     'in_footer' => true,
-                    'is_module' => false,
                 ],
                 'anys-spoilerjs' => [
                     'src'       => ANYS_ASSETS_URL . 'vendor/spoilerjs/spoiler-span.js',
@@ -59,18 +58,16 @@ final class Assets {
                     'is_module' => true,
                 ],
                 'anys-qr-code' => [
-                    'src'       => 'https://unpkg.com/@bitjson/qr-code@1.0.2/dist/qr-code.js',
+                    'src'       =>  ANYS_ASSETS_URL . 'vendor/qr-code/qr-code.js',
                     'deps'      => [],
                     'version'   => '1.0.2',
                     'in_footer' => true,
-                    'is_module' => false,
                 ],
                 'anys-qr-animation' => [
                     'src'       => ANYS_JS_URL . 'qr-animation.js',
                     'deps'      => [ 'anys-qr-code' ],
                     'version'   => '1.0.0',
                     'in_footer' => true,
-                    'is_module' => false,
                 ],
             ],
         ];

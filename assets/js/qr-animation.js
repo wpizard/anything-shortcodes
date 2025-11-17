@@ -1,51 +1,105 @@
 // Handles QR animations for <qr-code> elements rendered by AnyS.
-(function () {
+window.anys            = window.anys || {};
+window.anys.shortcodes = window.anys.shortcodes || {};
+
+/**
+ * Controls QR animations for <qr-code> elements.
+ *
+ * @since NEXT
+ */
+class QRAnimator {
     /**
-     * Applies animation to a QR element when requested.
+     * Constructor.
      *
-     * @param {HTMLElement} qrElement The <qr-code> element.
+     * @param {Object} options Optional configuration object.
+     * @param {string} [options.selector] CSS selector for QR elements.
+     * @param {string} [options.animationAttr] Data attribute that holds animation name.
+     * @param {string} [options.renderEvent] Event name fired when QR is rendered.
+     * @param {string} [options.animationMethod] Method name on element that triggers animation.
      */
-    function applyQrAnimation(qrElement) {
-        if (!qrElement) {
+    constructor(options) {
+        this.settings = Object.assign(
+            {
+                selector: 'qr-code[data-anys-qr-animation]',
+                animationAttr: 'data-anys-qr-animation',
+                renderEvent: 'codeRendered',
+                animationMethod: 'animateQRCode',
+            },
+            options || {}
+        );
+
+        this.attachAll = this.attachAll.bind(this);
+    }
+
+    /**
+     * Initializes the animator on DOM ready.
+     */
+    init() {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', this.attachAll);
+        } else {
+            this.attachAll();
+        }
+    }
+
+    /**
+     * Attaches animation handlers to all matched elements.
+     */
+    attachAll() {
+        var elements = document.querySelectorAll(this.settings.selector);
+
+        if (!elements.length) {
             return;
         }
 
-        var animationAttributeValue = qrElement.getAttribute('data-anys-qr-animation');
-
-        if (!animationAttributeValue) {
-            return;
-        }
-
-        // Executes animation after the QR code finishes rendering.
-        qrElement.addEventListener('codeRendered', function () {
-            if (typeof qrElement.animateQRCode === 'function') {
-                try {
-                    qrElement.animateQRCode(animationAttributeValue);
-                } catch (error) {
-                    // Prevents frontend interruptions.
-                }
-            }
+        elements.forEach((element) => {
+            this.attach(element);
         });
     }
 
     /**
-     * Initializes animation handlers for all QR elements.
+     * Attaches animation handler to a single element.
+     *
+     * @param {HTMLElement} element The QR element.
      */
-    function initializeQrAnimations() {
-        var qrElements = document.querySelectorAll('qr-code[data-anys-qr-animation]');
-
-        if (!qrElements.length) {
+    attach(element) {
+        if (!element) {
             return;
         }
 
-        qrElements.forEach(function (qrElement) {
-            applyQrAnimation(qrElement);
-        });
-    }
+        var attrName  = this.settings.animationAttr;
+        var animation = element.getAttribute(attrName);
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initializeQrAnimations);
-    } else {
-        initializeQrAnimations();
+        if (!animation) {
+            return;
+        }
+
+        var eventName      = this.settings.renderEvent;
+        var animationMethod = this.settings.animationMethod;
+
+        element.addEventListener(
+            eventName,
+            function () {
+                var animateFn = element[animationMethod];
+
+                if (typeof animateFn !== 'function') {
+                    return;
+                }
+
+                try {
+                    animateFn.call(element, animation);
+                } catch (error) {
+                    // Intentionally ignores animation errors.
+                }
+            },
+            { once: true }
+        );
     }
-})();
+}
+
+// Exposes class for external usage.
+window.anys.shortcodes.QRAnimator = QRAnimator;
+
+// Creates default singleton instance.
+window.anys.shortcodes.qrAnimator = new window.anys.shortcodes.QRAnimator();
+window.anys.shortcodes.qrAnimator.init();

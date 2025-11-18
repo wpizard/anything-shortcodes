@@ -503,6 +503,40 @@ function anys_has_shortcode( $content ) {
 }
 
 /**
+ * Splits content by "[anys else]" marker.
+ *
+ * @since NEXT
+ *
+ * @param string $content
+ *
+ * @return array{item:string, else:string}
+ */
+function anys_split_else_block( string $content ): array {
+    $raw   = shortcode_unautop( $content );
+    $parts = preg_split( '/\[\s*anys\s+else\s*\]/i', $raw, 2 );
+
+    return [
+        'item' => isset( $parts[0] ) ? trim( $parts[0] ) : '',
+        'else' => isset( $parts[1] ) ? trim( $parts[1] ) : '',
+    ];
+}
+
+/**
+ * Renders a template with minimal overhead.
+ *
+ * @since NEXT
+ *
+ * @param string $template
+ *
+ * @return string
+ */
+function anys_render_template_fast( string $template ): string {
+    return ( function_exists( 'anys_has_shortcode' ) && anys_has_shortcode( $template ) )
+        ? do_shortcode( $template )
+        : $template;
+}
+
+/**
  * Returns a Jalali (Persian) formatted date similar to WordPress's date_i18n().
  *
  * @since 1.4.0

@@ -193,6 +193,25 @@ final class Shortcodes {
         // Returns the final output.
         return $output;
     }
+
+    /**
+	 * Merge unknown (non-default) attributes back after shortcode_atts().
+	 *
+	 * Keeps keys like post_type, s, tax_query, meta_query, etc.
+	 *
+	 * @param array<string,mixed> $normalized Attributes with defaults applied.
+	 * @param array<string,mixed> $raw        Raw attributes from WP.
+	 * @param array<string,mixed> $defaults   Default attribute map.
+     *
+	 * @return array<string,mixed>
+	 */
+	private function merge_unknown_attributes( array $normalized, array $raw, array $defaults ) : array {
+		// Finds non-default keys and appends them.
+        $extra = array_diff_key( $raw, $defaults );
+
+        // Keeps normalized values, adds extras.
+        return $normalized + $extra;
+	}
 }
 
 /**

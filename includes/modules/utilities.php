@@ -549,3 +549,4 @@ function anys_date_i18n_jalali( $format, $timestamp = false, $gmt = false ) {
     // Core filter is applied for consistency.
     return apply_filters( 'date_i18n', $formatted_output, (string) $format, $resolved_timestamp, $gmt );
 }
+

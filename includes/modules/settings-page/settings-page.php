@@ -1,186 +1,230 @@
 <?php
 
-namespace AnyS\Modules;
+namespace AnyS\Modules\Settings;
 
 defined( 'ABSPATH' ) || exit;
 
 use AnyS\Traits\Singleton;
 
 /**
- * Settings Page module.
+ * Registers the settings page in WP Admin and handles saving plugin options.
  *
- * Handles the plugin settings page in the WordPress admin.
- *
- * @since 1.1.0
+ * @since NEXT
  */
 final class Settings_Page {
-    use Singleton;
+	use Singleton;
 
-    /**
-     * Adds hooks.
-     *
-     * @since 1.1.0
-     */
-    protected function add_hooks() {
-        add_action( 'admin_menu', [ $this, 'add_settings_page' ] );
-        add_action( 'admin_init', [ $this, 'register_settings' ] );
-        add_filter( 'plugin_action_links_anything-shortcodes/anything-shortcodes.php', [ $this, 'modify_plugin_action_links' ] );
-    }
+	/**
+	 * Option name for saving settings.
+	 *
+	 * @var string
+	 */
+	private $option_name = 'anys';
 
-    /**
-     * Adds settings page under Settings menu.
-     *
-     * @since 1.1.0
-     */
-    public function add_settings_page() {
-        add_options_page(
-            esc_html__( 'Anything Shortcodes Settings', 'anys' ),
-            esc_html__( 'Anything Shortcodes', 'anys' ),
-            'manage_options',
-            'anys-settings',
-            [ $this, 'render_settings_page' ]
-        );
-    }
+	/**
+	 * Slug for the settings page.
+	 *
+	 * @var string
+	 */
+	private $page_slug = 'anys-settings';
 
-    /**
-     * Registers settings, sections, and fields.
-     *
-     * @since 1.1.0
-     */
-    public function register_settings() {
-        register_setting(
-            'anys_settings_group',
-            'anys_settings',
-            [ $this, 'sanitize_settings' ]
-        );
+	/**
+	 * Supported tabs.
+	 *
+	 * @var array<string,string>
+	 */
+	private $tabs = [];
 
-        // Functions section.
-        add_settings_section(
-            'anys_functions_section',
-            esc_html__( 'Functions', 'anys' ),
-            [ $this, 'functions_section_callback' ],
-            'anys-settings'
-        );
+	/**
+	 * Adds WordPress admin hooks.
+	 *
+	 * @return void
+	 */
+	protected function add_hooks() {
+		add_action( 'admin_menu', [ $this, 'register_menu_page' ] );
+		add_action( 'admin_init', [ $this, 'handle_save' ] );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_assets' ] );
 
-        // Whitelist Functions field.
-        add_settings_field(
-            'anys_whitelisted_functions',
-            esc_html__( 'Whitelisted Functions', 'anys' ),
-            [ $this, 'whitelisted_functions_callback' ],
-            'anys-settings',
-            'anys_functions_section'
-        );
-    }
+		$this->tabs = [
+			'general'      => __( 'General', 'anys' ),
+			'integrations' => __( 'Integrations', 'anys' ),
+			'functions'    => __( 'Functions', 'anys' ),
+			'views'        => __( 'Views', 'anys' ),
+		];
+	}
 
-    /**
-     * Sanitizes settings input.
-     *
-     * @since 1.1.0
-     *
-     * @param array $input Raw input values.
-     *
-     * @return array Sanitized values.
-     */
-    public function sanitize_settings( $input ) {
-        $output = [];
+	/**
+	 * Adds the settings page under WP Admin → Settings.
+	 *
+	 * @return void
+	 */
+	public function register_menu_page() {
+		add_options_page(
+			__( 'Anything Shortcodes', 'anys' ),
+			__( 'Anything Shortcodes', 'anys' ),
+			'manage_options',
+			$this->page_slug,
+			[ $this, 'render_page' ]
+		);
+	}
 
-        // Sanitizes whitelist textarea into trimmed array of function names.
-        if ( isset( $input['anys_whitelisted_functions'] ) ) {
-            $functions = explode( "\n", sanitize_textarea_field( $input['anys_whitelisted_functions'] ) );
-            $functions = array_map( 'trim', $functions );
-            $functions = array_filter( $functions ); // Remove empty lines
+	/**
+	 * Handles saving settings via POST form.
+	 *
+	 * @return void
+	 */
+	public function handle_save() {
+		if ( ! is_admin() || ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
 
-            $output['anys_whitelisted_functions'] = $functions;
-        } else {
-            $output['anys_whitelisted_functions'] = [];
-        }
+		if (
+			isset( $_POST['anys'], $_POST['_anys_nonce'] ) &&
+			wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_anys_nonce'] ) ), 'anys_save_settings' )
+		) {
+			$incoming = is_array( $_POST['anys'] ?? null ) ? wp_unslash( $_POST['anys'] ) : [];
+			$existing = get_option( $this->option_name, [] );
 
-        return $output;
-    }
+			if ( ! is_array( $existing ) ) {
+				$existing = [];
+			}
 
-    /**
-     * Functions section description callback.
-     *
-     * @since 1.1.0
-     */
-    public function functions_section_callback() {
-        printf( '<span>%s</span>',
-            esc_html__( 'Adjust plugin functions.', 'anys' )
-        );
-    }
+			$merged = self::merge_and_sanitize_settings( $existing, $incoming );
+			update_option( $this->option_name, $merged );
 
-    /**
-     * Renders the Whitelisted Functions textarea field.
-     *
-     * @since 1.1.0
-     */
-    public function whitelisted_functions_callback() {
-        $options           = get_option( 'anys_settings' );
-        $whitelisted_functions = isset( $options['anys_whitelisted_functions'] ) && is_array( $options['anys_whitelisted_functions'] )
-            ? $options['anys_whitelisted_functions']
-            : [];
+			wp_safe_redirect(
+				add_query_arg(
+					[
+						'page'    => $this->page_slug,
+						'tab'     => $this->current_tab_slug(),
+						'updated' => 'true',
+					],
+					admin_url( 'options-general.php' )
+				)
+			);
+			exit;
+		}
+	}
 
-        // Gets the default whitelisted functions list as an array.
-        $default_whitelisted_functions = anys_get_default_whitelisted_functions();
+	/**
+	 * Renders the settings page and active tab.
+	 *
+	 * @return void
+	 */
+	public function render_page() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
 
-        // Converts array to a comma-separated string for display.
-        $default_whitelisted_functions_list = implode( ', ', $default_whitelisted_functions );
-        ?>
-        <textarea
-            id="anys_whitelisted_functions"
-            name="anys_settings[anys_whitelisted_functions]"
-            rows="7"
-            cols="50"
-            placeholder="<?php esc_attr_e( 'Enter one function name per line', 'anys' ); ?>"
-        ><?php echo esc_textarea( implode( "\n", $whitelisted_functions ) ); ?></textarea>
-        <p class="description">
-            <?php printf(
-                esc_html__( 'Enter function names whitelisted for [anys] shortcode. One per line. Default whitelisted functions (%s)', 'anys' ),
-                $default_whitelisted_functions_list
-            ); ?>
-        </p>
-        <?php
-    }
+		$active_tab = $this->current_tab_slug();
 
-    /**
-     * Outputs the settings page HTML.
-     *
-     * @since 1.1.0
-     */
-    public function render_settings_page() {
-        ?>
-        <div class="wrap">
-            <h1><?php esc_html_e( 'Anything Shortcodes Settings', 'anys' ); ?></h1>
-            <form method="post" action="options.php">
-                <?php
-                    settings_fields( 'anys_settings_group' );
-                    do_settings_sections( 'anys-settings' );
-                    submit_button();
-                ?>
-            </form>
-        </div>
-        <?php
-    }
+		echo '<div class="anys-wrap">';
 
-    /**
-     * Modifies plugin activation links to add Settings link.
-     *
-     * @since 1.1.0
-     *
-     * @param array $links Plugin action links.
-     *
-     * @return array Modified links.
-     */
-    public function modify_plugin_action_links( $links ) {
-        $links[] = '<a href="' . admin_url( 'options-general.php?page=anys-settings' ) . '">' . esc_html__( 'Settings', 'anys' ) . '</a>';
+		echo '<div class="anys-page-header">';
+		echo '<h1 class="anys-title">' . esc_html__( 'Anything Shortcodes', 'anys' ) . '</h1>';
+		echo '<a class="anys-pro-cta" href="#" target="_blank" rel="noopener">'
+			. esc_html__( 'Unlock Extra Features with Anything Shortcodes PRO', 'anys' ) .
+		'</a>';
+		echo '</div>';
 
-        return $links;
-    }
+		// Tabs
+		echo '<h2 class="nav-tab-wrapper anys-tabs">';
+		foreach ( $this->tabs as $slug => $label ) {
+			$url    = add_query_arg(
+				[ 'page' => $this->page_slug, 'tab' => 'anys-' . $slug ],
+				admin_url( 'options-general.php' )
+			);
+			$active = $slug === $active_tab ? ' nav-tab-active' : '';
+			echo '<a href="' . esc_url( $url ) . '" class="nav-tab anys-tab' . $active . '">' . esc_html( $label ) . '</a>';
+		}
+		echo '</h2>';
+
+		$view_file = $this->view_path( $active_tab );
+		if ( file_exists( $view_file ) ) {
+			$options    = get_option( $this->option_name, [] );
+			$form_nonce = wp_create_nonce( 'anys_save_settings' );
+			include $view_file;
+		} else {
+			echo '<p>' . esc_html__( 'The requested settings tab could not be found.', 'anys' ) . '</p>';
+		}
+
+		echo '</div>';
+	}
+
+	/**
+	 * Returns current active tab slug.
+	 *
+	 * @return string
+	 */
+	private function current_tab_slug(): string {
+		$requested = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : '';
+
+		if ( $requested && 0 === strpos( $requested, 'anys-' ) ) {
+			$requested = substr( $requested, 5 );
+		}
+
+		return array_key_exists( $requested, $this->tabs ) ? $requested : 'general';
+	}
+
+	/**
+	 * Returns the path to the view file of the tab.
+	 *
+	 * @param string $tab Tab slug.
+	 * @return string
+	 */
+	private function view_path( string $tab ): string {
+		return __DIR__ . '/views/' . $tab . '.php';
+	}
+
+	/**
+	 * Enqueues admin CSS and JS for settings page.
+	 *
+	 * @param string $hook Current admin page hook.
+	 * @return void
+	 */
+	public function enqueue_admin_assets( $hook ) {
+		if ( 'settings_page_' . $this->page_slug !== $hook ) {
+			return;
+		}
+
+		wp_enqueue_style( 'anys-admin-settings', ANYS_CSS_URL . 'settings.css', [], 'NEXT' );
+		wp_enqueue_script( 'anys-admin-mobile-sidebar', ANYS_JS_URL . 'admin-mobile-sidebar.js', [], '1.0.0', true );
+	}
+
+	/**
+	 * Merges and sanitizes plugin settings recursively.
+	 *
+	 * @param array $existing Existing options.
+	 * @param array $new New submitted options.
+	 * @return array Sanitized merged options.
+	 */
+	private static function merge_and_sanitize_settings( array $existing, array $new ): array {
+		$merged = array_replace_recursive( $existing, $new );
+
+		if ( isset( $merged['whitelisted_functions'] ) ) {
+			$list = $merged['whitelisted_functions'];
+			if ( is_string( $list ) ) {
+				$list = preg_split( "/\r\n|\r|\n/", $list );
+			}
+			$merged['whitelisted_functions'] = array_values(
+				array_unique(
+					array_filter( array_map( 'trim', (array) $list ), 'strlen' )
+				)
+			);
+		}
+
+		array_walk_recursive(
+			$merged,
+			function ( &$v ) {
+				if ( is_string( $v ) ) {
+					$v = sanitize_text_field( $v );
+				}
+			}
+		);
+
+		return $merged;
+	}
 }
 
-/**
- * Initializes the Settings_Page class.
- *
- * @since 1.1.0
- */
+// Boot the settings page.
 Settings_Page::get_instance();

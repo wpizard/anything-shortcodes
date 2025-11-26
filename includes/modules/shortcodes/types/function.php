@@ -119,8 +119,12 @@ final class Function_Type extends Base {
             )
         );
 
-        // Executes target function.
-        $value = call_user_func_array( $function, $args );
+        try {
+            // Executes target function.
+            $value = call_user_func_array( $function, $args );
+        } catch ( \Throwable ) {
+            $value = '';
+        }
 
         // Formats and wraps.
         $value  = anys_format_value( $value, $attributes );

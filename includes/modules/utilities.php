@@ -243,112 +243,54 @@ function anys_wrap_output( $value, $attributes = [] ) {
 }
 
 /**
- * Recursively parses dynamic attribute values and replaces placeholders with caching and security.
+ * Parses a value and resolves supported dynamic placeholders.
  *
- * Supported placeholders:
- * - {get:param}
- * - {post:param}
- * - {func:function,arg1,arg2}
- * - {shortcode:(tag)}
- * - {const:NAME}
+ * @since NEXT
  *
- * @param string|array $value Attribute value or array of values.
- * @param array        $cache Internal cache (used recursively).
+ * @param mixed      $value Raw value (string or array).
+ * @param array|null $cache Shared cache reference.
  *
- * @return string|array
+ * @return mixed Parsed output.
  */
-function anys_parse_dynamic_value( $value, &$cache = [] ) {
+function anys_parse_dynamic_value( $value, &$cache = null ) {
+    static $internal_cache = [];
+
+    // Uses internal cache when no external cache is supplied.
+    if ( $cache === null ) {
+        $cache = &$internal_cache;
+    }
+
+    // Processes array values recursively.
     if ( is_array( $value ) ) {
-        foreach ( $value as $k => $v ) {
-            $value[ $k ] = anys_parse_dynamic_value( $v, $cache );
+        foreach ( $value as $key => $child_value ) {
+            $value[ $key ] = anys_parse_dynamic_value( $child_value, $cache );
         }
 
         return $value;
     }
 
+    // Returns early when value is not a string.
     if ( ! is_string( $value ) ) {
         return $value;
     }
 
+    // Returns cached result when available.
     if ( isset( $cache[ $value ] ) ) {
         return $cache[ $value ];
     }
 
-    $whitelisted_functions = anys_get_whitelisted_functions();
+    // Delegates parsing to the Dynamic_Parser module.
+    $parsed_value = $value;
 
-    $callback = function( $full ) use ( &$whitelisted_functions, &$cache ) {
-        if ( preg_match( '/^\{get:([a-zA-Z0-9_-]+)\}$/', $full, $m ) ) {
-            $val = isset( $_GET[ $m[1] ] ) ? sanitize_text_field( wp_unslash( $_GET[ $m[1] ] ) ) : '';
-            $cache[ $full ] = $val;
-
-            return $val;
-        }
-
-        if ( preg_match( '/^\{post:([a-zA-Z0-9_-]+)\}$/', $full, $m ) ) {
-            $val = isset( $_POST[ $m[1] ] ) ? sanitize_text_field( wp_unslash( $_POST[ $m[1] ] ) ) : '';
-            $cache[ $full ] = $val;
-
-            return $val;
-        }
-
-        if ( preg_match( '/^\{func:([a-zA-Z0-9_\\\\]+)(?:,(.*))?\}$/', $full, $m ) ) {
-            $function = $m[1];
-
-            if ( ! in_array( $function, $whitelisted_functions, true ) ) {
-                return '';
-            }
-
-            $args = isset( $m[2] ) ? array_map( 'trim', explode( ',', $m[2] ) ) : [];
-            $args = array_map( function( $arg ) use ( &$whitelisted_functions, &$cache ) {
-                return anys_parse_dynamic_value( $arg, $cache );
-            }, $args );
-
-            if ( function_exists( $function ) ) {
-                $val = call_user_func_array( $function, $args );
-                if ( is_string( $val ) ) {
-                    $val = sanitize_text_field( $val );
-                }
-                $cache[ $full ] = $val;
-                return $val;
-            }
-
-            return '';
-        }
-
-        if ( preg_match( '/^\{shortcode:\((.*)\)\}$/', $full, $m ) ) {
-            $val = do_shortcode( '[' . $m[1] . ']' );
-            $val = wp_strip_all_tags( $val );
-            $cache[ $full ] = $val;
-
-            return $val;
-        }
-
-        if ( preg_match( '/^\{const:([A-Z0-9_]+)\}$/', $full, $m ) ) {
-            $val = defined( $m[1] ) ? constant( $m[1] ) : '';
-            $cache[ $full ] = $val;
-
-            return $val;
-        }
-
-        return $full;
-    };
-
-    $previous_value = null;
-    $current_value = $value;
-
-    while ( $previous_value !== $current_value ) {
-        $previous_value = $current_value;
-
-        if ( preg_match( '/^\{(get|post|func|shortcode|const):.*\}$/', $current_value ) ) {
-            $current_value = $callback( $current_value );
-        } else {
-            break;
-        }
+    if ( class_exists( '\AnyS\Modules\Dynamic\Dynamic_Parser' ) ) {
+        $parser_instance = \AnyS\Modules\Dynamic\Dynamic_Parser::get_instance();
+        $parsed_value    = $parser_instance->parse( $value );
     }
 
-    $cache[ $value ] = $current_value;
+    // Stores parsed value in cache.
+    $cache[ $value ] = $parsed_value;
 
-    return $current_value;
+    return $parsed_value;
 }
 
 /**

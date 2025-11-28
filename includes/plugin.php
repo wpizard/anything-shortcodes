@@ -150,6 +150,7 @@ final class Plugin {
             'nav-menu/nav-menu.php',
             'elementor/elementor.php',
             'assets/assets.php',
+            'dynamic/dynamic-parser.php',
         ];
 
         foreach ( $modules as $module ) {

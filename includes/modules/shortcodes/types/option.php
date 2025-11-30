@@ -23,7 +23,7 @@ final class Option_Type extends Base {
      *
      * @return string
      */
-    public function get_type() {
+    public function get_type(): string {
         return 'option';
     }
 
@@ -32,9 +32,9 @@ final class Option_Type extends Base {
      *
      * @since NEXT
      *
-     * @return array
+     * @return array<string,mixed>
      */
-    protected function get_defaults() {
+    protected function get_defaults(): array {
         return [
             'name'     => '',
             'before'   => '',
@@ -50,12 +50,12 @@ final class Option_Type extends Base {
      * @since 1.0.0
      * @since NEXT Moved to class-based structure.
      *
-     * @param array  $attributes Shortcode attributes.
-     * @param string $content    Enclosed content (optional).
+     * @param array<string,mixed> $attributes Shortcode attributes.
+     * @param string|null         $content    Enclosed content (optional).
      *
      * @return string
      */
-    public function render( array $attributes, string $content = '' ) {
+    public function render( array $attributes, ?string $content = '' ): string {
         $attributes = $this->get_attributes( $attributes );
 
         // Parses dynamic attributes.

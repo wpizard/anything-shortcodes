@@ -16,7 +16,7 @@
  *
  * @return string Returns if the value is found; else $default is returned.
  */
-function anys_get( $needle, $haystack = false, $default = null ) {
+function anys_get( string $needle, array|false|null $haystack = false, mixed $default = null ): mixed {
 
     if ( false === $haystack ) {
         $haystack = $_GET; // phpcs:ignore WordPress.Security.NonceVerification.NoNonceVerification -- The nonce verification check should be at the form processing level.
@@ -41,7 +41,7 @@ function anys_get( $needle, $haystack = false, $default = null ) {
  *
  * @return string Returns the value if found; else $default is returned.
  */
-function anys_post( $needle, $haystack = false, $default = null ) {
+function anys_post( string $needle, array|false|null $haystack = false, mixed $default = null ): mixed {
 
     if ( false === $haystack ) {
         $haystack = $_POST; // phpcs:ignore WordPress.Security.NonceVerification.NoNonceVerification -- The nonce verification check should be at the form processing level.
@@ -60,7 +60,7 @@ function anys_post( $needle, $haystack = false, $default = null ) {
  *
  * @return string Returns the value if found; else $default is returned.
  */
-function anys_get_or_post( $needle, $default = null ) {
+function anys_get_or_post( string $needle, mixed $default = null ): mixed {
     $get = anys_get( $needle );
 
     if ( $get ) {
@@ -83,7 +83,7 @@ function anys_get_or_post( $needle, $default = null ) {
  *
  * @return string Returns text with prefix.
  */
-function anys_prefix( $text ) {
+function anys_prefix( string $text ): string {
     return ANYS_SLUG . $text;
 }
 
@@ -95,7 +95,7 @@ function anys_prefix( $text ) {
  *
  * @return mixed|null
  */
-function anys_call_function( $function_name, $args = [] ) {
+function anys_call_function( string $function_name, array $args = [] ): mixed {
     $whitelisted_functions = anys_get_whitelisted_functions();
 
     if ( function_exists( $function_name ) && in_array( $function_name, $whitelisted_functions, true ) ) {
@@ -113,9 +113,10 @@ function anys_call_function( $function_name, $args = [] ) {
  *
  * @param mixed  $value
  * @param string $format
+ *
  * @return string
  */
-function anys_format_value( $value, $attributes = [] ) {
+function anys_format_value( mixed $value, array $attributes = [] ): mixed {
     if ( empty( $attributes['format'] ) ) {
         return $value;
     }
@@ -231,7 +232,7 @@ function anys_format_value( $value, $attributes = [] ) {
  *
  * @return string
  */
-function anys_wrap_output( $value, $attributes = [] ) {
+function anys_wrap_output( mixed $value, array $attributes = [] ): string {
     if ( empty( $value ) && ! empty( $attributes['fallback'] ) ) {
         $value = $attributes['fallback'];
     }
@@ -239,7 +240,7 @@ function anys_wrap_output( $value, $attributes = [] ) {
     $before = $attributes['before'] ?? '';
     $after  = $attributes['after'] ?? '';
 
-    return $before . $value . $after;
+    return $before . (string) $value . $after;
 }
 
 /**
@@ -257,7 +258,7 @@ function anys_wrap_output( $value, $attributes = [] ) {
  *
  * @return string|array
  */
-function anys_parse_dynamic_value( $value, &$cache = [] ) {
+function anys_parse_dynamic_value( mixed $value, array &$cache = [] ): mixed {
     if ( is_array( $value ) ) {
         foreach ( $value as $k => $v ) {
             $value[ $k ] = anys_parse_dynamic_value( $v, $cache );
@@ -358,7 +359,7 @@ function anys_parse_dynamic_value( $value, &$cache = [] ) {
  *
  * @return array
  */
-function anys_parse_dynamic_attributes( $atts ) {
+function anys_parse_dynamic_attributes( $atts ): array {
     $cache = [];
 
     foreach ( $atts as $key => $value ) {
@@ -375,7 +376,7 @@ function anys_parse_dynamic_attributes( $atts ) {
  *
  * @return array The list of whitelisted function names.
  */
-function anys_get_whitelisted_functions() {
+function anys_get_whitelisted_functions(): array {
     // Default whitelisted functions.
     $default_functions = anys_get_default_whitelisted_functions();
 
@@ -401,7 +402,7 @@ function anys_get_whitelisted_functions() {
  *
  * @return array The list of default whitelisted function names.
  */
-function anys_get_default_whitelisted_functions() {
+function anys_get_default_whitelisted_functions(): mixed {
     $default_functions = [
         'abs',
         'ceil',
@@ -467,7 +468,7 @@ function anys_get_default_whitelisted_functions() {
  *
  * @return string Modified shortcode string.
  */
-function anys_force_shortcode_attr( $shortcode, $attr, $value ) {
+function anys_force_shortcode_attr( string $shortcode, string $attr, string $value ): string {
     $shortcode = (string) $shortcode;
 
     // Replaces existing attribute.
@@ -494,7 +495,7 @@ function anys_force_shortcode_attr( $shortcode, $attr, $value ) {
  *
  * @return bool True if any shortcode exists, false otherwise.
  */
-function anys_has_shortcode( $content ) {
+function anys_has_shortcode( string $content ): bool {
     if ( preg_match( '/\[[a-zA-Z0-9_]+[^\]]*\]/', $content ) ) {
         return true;
     }
@@ -513,7 +514,7 @@ function anys_has_shortcode( $content ) {
  *
  * @return string
  */
-function anys_date_i18n_jalali( $format, $timestamp = false, $gmt = false ) {
+function anys_date_i18n_jalali( string $format, int|false $timestamp = false, bool $gmt = false ): string {
 
     // Timestamp is resolved like core.
     $resolved_timestamp = ( false === $timestamp )

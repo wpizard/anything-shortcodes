@@ -23,7 +23,7 @@ final class Spoiler_Type extends Base {
      *
      * @return string
      */
-    public function get_type() {
+    public function get_type(): string {
         return 'spoiler';
     }
 
@@ -34,23 +34,23 @@ final class Spoiler_Type extends Base {
      *
      * @since NEXT
      *
-     * @return array
+     * @return array<string,mixed>
      */
-    protected function get_defaults() {
+    protected function get_defaults(): array {
         return [
-            'before' => '',
-            'after' => '',
-            'fallback' => '',
-            'format' => '',
-            'scale' => '',
-            'min-velocity' => '',
-            'max-velocity' => '',
+            'before'            => '',
+            'after'             => '',
+            'fallback'          => '',
+            'format'            => '',
+            'scale'             => '',
+            'min-velocity'      => '',
+            'max-velocity'      => '',
             'particle-lifetime' => '',
-            'density' => '',
-            'reveal-duration' => '',
-            'spawn-stop-delay' => '',
-            'monitor-position' => '',
-            'fps' => '',
+            'density'           => '',
+            'reveal-duration'   => '',
+            'spawn-stop-delay'  => '',
+            'monitor-position'  => '',
+            'fps'               => '',
         ];
     }
 
@@ -59,12 +59,12 @@ final class Spoiler_Type extends Base {
      *
      * @since NEXT
      *
-     * @param array  $attributes Raw shortcode attributes.
-     * @param string $content    Shortcode content.
+     * @param array<string,mixed> $attributes Raw shortcode attributes.
+     * @param string|null         $content    Shortcode content.
      *
      * @return string
      */
-    public function render( array $attributes, string $content = '' ) {
+    public function render( array $attributes, ?string $content = '' ): string {
         $attributes = $this->get_attributes( $attributes );
         $attributes = anys_parse_dynamic_attributes( $attributes );
 
@@ -101,7 +101,7 @@ final class Spoiler_Type extends Base {
         }
 
         // Processes content.
-        $inner = wp_kses_post( do_shortcode( $content ) );
+        $inner = wp_kses_post( do_shortcode( (string) ( $content ?? '' ) ) );
 
         // Creates <spoiler-span> element.
         $spoiler = sprintf(
@@ -112,20 +112,20 @@ final class Spoiler_Type extends Base {
 
         // Applies wrappers and formatting.
         $spoiler = anys_format_value( $spoiler, $attributes );
-        $output = anys_wrap_output( $spoiler, $attributes );
+        $output  = anys_wrap_output( $spoiler, $attributes );
 
         // Allows spoiler-span attributes.
         $allowed = wp_kses_allowed_html( 'post' );
         $allowed['spoiler-span'] = [
-            'scale' => true,
-            'min-velocity' => true,
-            'max-velocity' => true,
+            'scale'             => true,
+            'min-velocity'      => true,
+            'max-velocity'      => true,
             'particle-lifetime' => true,
-            'density' => true,
-            'reveal-duration' => true,
-            'spawn-stop-delay' => true,
-            'monitor-position' => true,
-            'fps' => true,
+            'density'           => true,
+            'reveal-duration'   => true,
+            'spawn-stop-delay'  => true,
+            'monitor-position'  => true,
+            'fps'               => true,
         ];
 
         return wp_kses( (string) $output, $allowed );

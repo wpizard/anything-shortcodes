@@ -23,7 +23,7 @@ final class Link_Type extends Base {
      *
      * @return string
      */
-    public function get_type() {
+    public function get_type(): string {
         return 'link';
     }
 
@@ -32,9 +32,9 @@ final class Link_Type extends Base {
      *
      * @since NEXT
      *
-     * @return array
+     * @return array<string,mixed>
      */
-    protected function get_defaults() {
+    protected function get_defaults(): array {
         return [
             'name'             => '',
             'id'               => 0,
@@ -57,12 +57,12 @@ final class Link_Type extends Base {
      * @since 1.3.0
      * @since NEXT Moved to class-based structure.
      *
-     * @param array  $attributes Shortcode attributes.
-     * @param string $content    Enclosed content (optional).
+     * @param array<string,mixed> $attributes Shortcode attributes.
+     * @param string|null         $content    Enclosed content (optional).
      *
      * @return string
      */
-    public function render( array $attributes, string $content = '' ) {
+    public function render( array $attributes, ?string $content = '' ): string {
         $attributes = $this->get_attributes( $attributes );
 
         // Parses dynamic attributes.
@@ -72,21 +72,28 @@ final class Link_Type extends Base {
         $format = $attributes['format'] ?? 'raw';
         $target = $attributes['target'] ?? '';
 
-        // Define handlers
+        // Define handlers.
+        /** @var array<string,callable> $handlers */
         $handlers = [
-            'logout'   => fn( $atts ) => wp_logout_url( $atts['logout_redirect'] ?? '' ),
-            'login'    => fn( $atts ) => wp_login_url( $atts['login_redirect'] ?? '' ),
-            'register' => fn() => wp_registration_url(),
-            'home'     => fn() => home_url(),
-            'admin'    => fn() => admin_url(),
-            'profile'  => fn() => admin_url( 'profile.php' ),
-            'post'     => fn( $atts ) => empty( $atts['id'] ) ? '' : ( is_wp_error( $p = get_permalink( (int) $atts['id'] ) ) ? '' : $p ),
-            'term'     => fn( $atts ) => empty( $atts['id'] ) ? '' : ( is_wp_error( $t = get_term_link( (int) $atts['id'] ) ) ? '' : $t ),
-            'siteurl'  => fn() => site_url(),
-            'current'  => fn() => home_url( add_query_arg( [] ) ),
-            'auth'     => fn( $atts ) => is_user_logged_in()
-                ? wp_logout_url( $atts['logout_redirect'] ?? '' )
-                : wp_login_url( $atts['login_redirect'] ?? '' ),
+            'logout'   => fn( array $atts ): string =>
+                wp_logout_url( (string) ( $atts['logout_redirect'] ?? '' ) ),
+            'login'    => fn( array $atts ): string =>
+                wp_login_url( (string) ( $atts['login_redirect'] ?? '' ) ),
+            'register' => fn(): string => wp_registration_url(),
+            'home'     => fn(): string => home_url(),
+            'admin'    => fn(): string => admin_url(),
+            'profile'  => fn(): string => admin_url( 'profile.php' ),
+            'post'     => fn( array $atts ): string => empty( $atts['id'] )
+                ? ''
+                : ( is_wp_error( $p = get_permalink( (int) $atts['id'] ) ) ? '' : (string) $p ),
+            'term'     => fn( array $atts ): string => empty( $atts['id'] )
+                ? ''
+                : ( is_wp_error( $t = get_term_link( (int) $atts['id'] ) ) ? '' : (string) $t ),
+            'siteurl'  => fn(): string => site_url(),
+            'current'  => fn(): string => home_url( add_query_arg( [] ) ),
+            'auth'     => fn( array $atts ): string => is_user_logged_in()
+                ? wp_logout_url( (string) ( $atts['logout_redirect'] ?? '' ) )
+                : wp_login_url( (string) ( $atts['login_redirect'] ?? '' ) ),
         ];
 
         /**
@@ -94,14 +101,16 @@ final class Link_Type extends Base {
          *
          * @since 1.3.0
          *
-         * @param array $handlers The list of available link handlers.
+         * @param array<string,callable> $handlers The list of available link handlers.
          *
-         * @return array Modified list of link handlers.
+         * @return array<string,callable> Modified list of link handlers.
          */
         $handlers = apply_filters( 'anys/link/handlers', $handlers );
 
         // Resolves URL.
-        $url   = isset( $handlers[ $name ] ) ? call_user_func( $handlers[ $name ], $attributes ) : '';
+        $url   = isset( $handlers[ $name ] )
+            ? (string) call_user_func( $handlers[ $name ], $attributes )
+            : '';
         $label = $attributes['label'] ?: ucfirst( $name );
 
         // Adjusts label for auth.
@@ -115,13 +124,18 @@ final class Link_Type extends Base {
 
         // Builds anchor.
         if ( $format === 'anchor' ) {
-            $t = $target ? sprintf( ' target="%s"', esc_attr( $target ) ) : '';
-            $value = sprintf( '<a href="%s"%s class="anys-link">%s</a>', esc_url( $url ), $t, esc_html( $label ) );
+            $t     = $target ? sprintf( ' target="%s"', esc_attr( $target ) ) : '';
+            $value = sprintf(
+                '<a href="%s"%s class="anys-link">%s</a>',
+                esc_url( $url ),
+                $t,
+                esc_html( $label )
+            );
         }
 
         // Wraps and returns.
         $output = anys_wrap_output( $value, $attributes );
 
-        return wp_kses_post( $output );
+        return wp_kses_post( (string) $output );
     }
 }

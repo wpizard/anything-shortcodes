@@ -20,7 +20,7 @@ trait Singleton {
      *
      * @var static
      */
-    private static $instance;
+    private static ?self $instance = null;
 
     /**
      * Returns the instance.
@@ -29,7 +29,7 @@ trait Singleton {
      *
      * @return static
      */
-    public static function get_instance() {
+    public static function get_instance(): static {
         if ( is_null( self::$instance ) ) {
             self::$instance = new self();
         }
@@ -52,14 +52,14 @@ trait Singleton {
      *
      * @since NEXT
      */
-    protected function add_hooks() {}
+    protected function add_hooks(): void {}
 
     /**
      * Loads helpers file for the module if it exists.
      *
      * @since NEXT
      */
-    protected function load_helpers() {
+    protected function load_helpers(): void {
         // Gets the module's directory (where the class file is located).
         $reflector    = new \ReflectionClass( $this );
         $dir          = dirname( $reflector->getFileName() );

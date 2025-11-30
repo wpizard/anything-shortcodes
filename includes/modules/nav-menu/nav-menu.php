@@ -21,7 +21,7 @@ final class Nav_Menu {
      *
      * @since 1.4.0
      */
-    protected function add_hooks() {
+    protected function add_hooks(): void {
         add_filter( 'wp_nav_menu_objects', [ $this, 'process_menu_shortcodes' ] );
 
         // Temporarily disabled admin preview — until further decision.
@@ -37,7 +37,7 @@ final class Nav_Menu {
      *
      * @return array
      */
-    public function process_menu_shortcodes( $items ) {
+    public function process_menu_shortcodes( array $items ): array {
         foreach ( $items as $item ) {
             if ( ! is_object( $item ) ) {
                 continue;
@@ -76,7 +76,7 @@ final class Nav_Menu {
      * @param int     $depth
      * @param array   $args
      */
-    public function admin_menu_item_preview( $item_id, $item, $depth, $args ) {
+    public function admin_menu_item_preview( int $item_id, \WP_Post $item, int $depth, array $args ): void {
         if ( ! is_admin() || ! function_exists( 'get_current_screen' ) ) {
             return;
         }

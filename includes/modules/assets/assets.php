@@ -21,7 +21,7 @@ final class Assets {
      *
      * @since NEXT
      */
-    protected function add_hooks() {
+    protected function add_hooks(): void {
         add_action( 'init', [ $this, 'register_assets' ] );
         add_action( 'wp_head', [ $this, 'localize_data' ] );
 
@@ -33,7 +33,7 @@ final class Assets {
      *
      * @since NEXT
      */
-    protected function get_assets() {
+    protected function get_assets(): array {
         $assets = [
             'styles' => [
                 'anys-utilities' => [
@@ -69,7 +69,7 @@ final class Assets {
      *
      * @since NEXT
      */
-    public function register_assets() {
+    public function register_assets(): void {
         $assets = $this->get_assets();
 
         // Registers styles.
@@ -109,7 +109,7 @@ final class Assets {
      *
      * @since NEXT
      */
-    public function localize_data() {
+    public function localize_data(): void {
         ?>
         <script>
             window.anysData = <?php echo wp_json_encode( [
@@ -127,7 +127,7 @@ final class Assets {
      *
      * @since NEXT
      */
-    public function force_module_type( $tag, $handle, $src ) {
+    public function force_module_type( string $tag, string $handle, string $src ): string {
         if ( $handle === 'anys-spoilerjs' ) {
             // If type attr is missing, inject it.
             if ( strpos( $tag, ' type=' ) === false ) {

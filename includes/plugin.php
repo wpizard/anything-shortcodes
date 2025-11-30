@@ -46,10 +46,10 @@ final class Plugin {
      *
      * @since 1.0.0
      */
-    private function safe_mode() {
+    private function safe_mode(): bool {
         $safe_mode = filter_input( INPUT_GET, 'anys_safe_mode', FILTER_SANITIZE_SPECIAL_CHARS );
 
-        return boolval( $safe_mode );
+        return (bool) $safe_mode;
     }
 
     /**
@@ -58,7 +58,7 @@ final class Plugin {
      * @since 1.0.0
      * @since 1.1.0 Changes Shortcode constant to Types.
      */
-    protected function define_constants() {
+    protected function define_constants(): void {
         define( 'ANYS_NAME', 'Anything Shortcodes' );
         define( 'ANYS_SLUG', 'anys' );
         define( 'ANYS_VERSION', '1.4.0' );
@@ -82,7 +82,7 @@ final class Plugin {
      *
      * @since 1.0.0
      */
-    protected function add_hooks() {
+    protected function add_hooks(): void {
         add_action( 'plugins_loaded', [ $this, 'init' ] );
         add_action( 'init', [ $this, 'load_textdomain' ] );
         add_action( 'anys/init', [ $this, 'load_modules' ] );
@@ -93,7 +93,7 @@ final class Plugin {
      *
      * @since 1.0.0
      */
-    public function init() {
+    public function init(): void {
         /**
          * Loads Anything Shortcodes .
          *
@@ -107,7 +107,7 @@ final class Plugin {
      *
      * @since 1.0.0
      */
-    public function load_textdomain() {
+    public function load_textdomain(): void {
         load_plugin_textdomain( 'anys', false, ANYS_PATH . '/languages' );
     }
 
@@ -120,7 +120,7 @@ final class Plugin {
      *
      * @return void
      */
-    protected function load_file( $file ) {
+    protected function load_file( string $file ): void {
         if (
             ! empty( $file )
             && file_exists( $file )
@@ -136,7 +136,7 @@ final class Plugin {
      * @since 1.1.0 Changes file name.
      * @since 1.4.0 Dynamic includes & Composer support.
      */
-    public function load_modules() {
+    public function load_modules(): void {
         // Loads Composer autoload if available.
         $this->load_file( ANYS_PATH . '/vendor/autoload.php' );
 

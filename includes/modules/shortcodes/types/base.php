@@ -20,16 +20,16 @@ abstract class Base {
      *
      * @return string
      */
-    abstract public function get_type();
+    abstract public function get_type(): string;
 
     /**
      * Returns the default shortcode attributes.
      *
      * @since NEXT
      *
-     * @return array
+     * @return array<string,mixed>
      */
-    protected function get_defaults() {
+    protected function get_defaults(): array {
         return [];
     }
 
@@ -38,11 +38,11 @@ abstract class Base {
      *
      * @since NEXT
      *
-     * @param array $attributes Raw attributes.
+     * @param array<string,mixed> $attributes Raw attributes.
      *
-     * @return array Merged attributes.
+     * @return array<string,mixed> Merged attributes.
      */
-    protected function get_attributes( array $attributes ) {
+    protected function get_attributes( array $attributes ): array {
         $defaults = $this->get_defaults();
 
         $attributes = wp_parse_args(
@@ -63,5 +63,5 @@ abstract class Base {
      *
      * @return string
      */
-    abstract public function render( array $attributes, string $content );
+    abstract public function render( array $attributes, string $content ): string;
 }

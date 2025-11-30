@@ -23,7 +23,7 @@ final class User_Field_Type extends Base {
      *
      * @return string
      */
-    public function get_type() {
+    public function get_type(): string {
         return 'user-field';
     }
 
@@ -32,9 +32,9 @@ final class User_Field_Type extends Base {
      *
      * @since NEXT
      *
-     * @return array
+     * @return array<string,mixed>
      */
-    protected function get_defaults() {
+    protected function get_defaults(): array {
         return [
             'id'       => get_current_user_id(),
             'name'     => '',
@@ -51,19 +51,19 @@ final class User_Field_Type extends Base {
      * @since 1.0.0
      * @since NEXT Moved to class-based structure.
      *
-     * @param array  $attributes Shortcode attributes.
-     * @param string $content    Enclosed content (optional).
+     * @param array<string,mixed> $attributes Shortcode attributes.
+     * @param string|null         $content    Enclosed content (optional).
      *
      * @return string
      */
-    public function render( array $attributes, string $content ) {
+    public function render( array $attributes, ?string $content = '' ): string {
         $attributes = $this->get_attributes( $attributes );
 
         // Parses dynamic attributes.
         $attributes = anys_parse_dynamic_attributes( $attributes );
 
-        $key     = $attributes['name'] ?? '';
-        $user_id = (int) $attributes['id'];
+        $key     = isset( $attributes['name'] ) ? (string) $attributes['name'] : '';
+        $user_id = isset( $attributes['id'] ) ? (int) $attributes['id'] : 0;
 
         if ( $key === '' || $user_id <= 0 ) {
             return '';
@@ -71,7 +71,7 @@ final class User_Field_Type extends Base {
 
         // Fetches user and field.
         $user  = get_userdata( $user_id );
-        $value = ( $user && isset( $user->$key ) ) ? $user->$key : '';
+        $value = ( $user && isset( $user->{$key} ) ) ? $user->{$key} : '';
 
         // Formats and wraps.
         $value  = anys_format_value( $value, $attributes );

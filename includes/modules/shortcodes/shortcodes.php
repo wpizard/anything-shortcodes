@@ -22,7 +22,7 @@ final class Shortcodes {
      *
      * @since 1.0.0
      */
-    protected function add_hooks() {
+    protected function add_hooks(): void {
         add_action( 'init', [ $this, 'register_shortcode' ] );
     }
 
@@ -31,7 +31,7 @@ final class Shortcodes {
      *
      * @since 1.0.0
      */
-    public function register_shortcode() {
+    public function register_shortcode(): void {
         // Requires the Base class before registering the shortcode.
         $base_file = ANYS_MODULES_PATH . 'shortcodes/types/base.php';
 
@@ -47,12 +47,12 @@ final class Shortcodes {
      *
      * @since 1.0.0
      *
-     * @param array  $attributes Shortcode attributes.
-     * @param string $content    Shortcode content.
+     * @param array<string,mixed> $attributes Shortcode attributes.
+     * @param string|null         $content    Shortcode content.
      *
-     * @return string
+     * @return string Final rendered output.
      */
-    public function render_shortcode( array $attributes, string $content = '' ) {
+    public function render_shortcode( array $attributes, ?string $content = '' ): string {
         /**
          * Filters the shortcode attributes before processing.
          *
@@ -120,7 +120,11 @@ final class Shortcodes {
         require_once $file;
 
         // Build the class name based on the file type.
-        $class_name = '\\AnyS\\Modules\\Shortcodes\\Types\\' . str_replace( '-', '_', ucfirst( $attributes['type'] ) . '_Type' );
+        $class_name = '\\AnyS\\Modules\\Shortcodes\\Types\\' . str_replace(
+            '-',
+            '_',
+            ucfirst( $attributes['type'] ) . '_Type'
+        );
 
         // Check if the class exists before calling render().
         if ( ! class_exists( $class_name ) ) {
@@ -190,8 +194,8 @@ final class Shortcodes {
             $content
         );
 
-        // Returns the final output.
-        return $output;
+        // Returns the final output as string.
+        return (string) $output;
     }
 }
 

@@ -5,7 +5,6 @@ namespace AnyS\Modules\Shortcodes\Types;
 defined( 'ABSPATH' ) || exit;
 
 use AnyS\Traits\Singleton;
-use AnyS\Modules\Shortcodes\Types\Base;
 
 /**
  * Post Field shortcode type.
@@ -24,7 +23,7 @@ final class Post_Field_Type extends Base {
      *
      * @return string
      */
-    public function get_type() {
+    public function get_type(): string {
         return 'post-field';
     }
 
@@ -33,9 +32,9 @@ final class Post_Field_Type extends Base {
      *
      * @since NEXT
      *
-     * @return array
+     * @return array<string,mixed>
      */
-    protected function get_defaults() {
+    protected function get_defaults(): array {
         return [
             'id'       => get_the_ID(),
             'name'     => '',
@@ -52,22 +51,26 @@ final class Post_Field_Type extends Base {
      * @since 1.0.0
      * @since NEXT Moved to class-based structure.
      *
-     * @param array  $attributes Shortcode attributes.
-     * @param string $content    Enclosed content (optional).
+     * @param array<string,mixed> $attributes Shortcode attributes.
+     * @param string|null         $content    Enclosed content (optional).
      *
      * @return string
      */
-    public function render( array $attributes, string $content ) {
+    public function render( array $attributes, ?string $content = '' ): string {
         $attributes = $this->get_attributes( $attributes );
 
         // Parses dynamic attributes.
         $attributes = anys_parse_dynamic_attributes( $attributes );
 
-        $key     = $attributes['name'];
-        $post_id = intval( $attributes['id'] );
+        $key     = isset( $attributes['name'] ) ? (string) $attributes['name'] : '';
+        $post_id = isset( $attributes['id'] ) ? (int) $attributes['id'] : 0;
+
+        if ( $key === '' || $post_id <= 0 ) {
+            return '';
+        }
 
         $post  = get_post( $post_id );
-        $value = ( $post && isset( $post->$key ) ) ? $post->$key : '';
+        $value = ( $post && isset( $post->{$key} ) ) ? $post->{$key} : '';
 
         // Handles computed fields which override the default value.
         switch ( strtolower( $key ) ) {
@@ -85,7 +88,7 @@ final class Post_Field_Type extends Base {
         // Wraps with before/after and applies fallback.
         $output = anys_wrap_output( $value, $attributes );
 
-        // Outputs the sanitized content.
-        return wp_kses_post( $output ) . do_shortcode( $content );
+        // Outputs the sanitized content plus processed inner content.
+        return wp_kses_post( (string) $output ) . do_shortcode( (string) ( $content ?? '' ) );
     }
 }

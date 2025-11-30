@@ -21,7 +21,7 @@ final class Ajax {
      *
      * @since NEXT
      */
-    protected function add_hooks() {
+    protected function add_hooks(): void {
         add_action( 'wp_ajax_anys', [ $this, 'handle_request' ] );
         add_action( 'wp_ajax_nopriv_anys', [ $this, 'handle_request' ] );
     }
@@ -31,7 +31,7 @@ final class Ajax {
      *
      * @since NEXT
      */
-    public function handle_request() {
+    public function handle_request(): void {
         // Verifies the nonce.
         check_ajax_referer( 'anys_nonce' );
 

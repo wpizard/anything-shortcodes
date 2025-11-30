@@ -23,7 +23,7 @@ final class Function_Type extends Base {
      *
      * @return string
      */
-    public function get_type() {
+    public function get_type(): string {
         return 'function';
     }
 
@@ -32,9 +32,9 @@ final class Function_Type extends Base {
      *
      * @since NEXT
      *
-     * @return array
+     * @return array<string,mixed>
      */
-    protected function get_defaults() {
+    protected function get_defaults(): array {
         return [
             'name'     => '',
             'before'   => '',
@@ -50,12 +50,12 @@ final class Function_Type extends Base {
      * @since 1.1.0
      * @since NEXT Moved to class-based structure.
      *
-     * @param array  $attributes Shortcode attributes.
-     * @param string $content    Enclosed content (optional).
+     * @param array<string,mixed> $attributes Shortcode attributes.
+     * @param string|null         $content    Enclosed content (optional).
      *
      * @return string
      */
-    public function render( array $attributes, string $content ) {
+    public function render( array $attributes, ?string $content = '' ): string {
         $attributes = $this->get_attributes( $attributes );
 
         // Parses dynamic attributes.
@@ -70,7 +70,7 @@ final class Function_Type extends Base {
             return '';
         }
 
-        // Validates function existence
+        // Validates function existence.
         if ( ! function_exists( $function ) ) {
             if ( current_user_can( 'manage_options' ) ) {
                 return sprintf(
@@ -104,8 +104,9 @@ final class Function_Type extends Base {
         // Resolves arguments.
         $tokens = $args_raw !== '' ? array_map( 'trim', explode( '|', $args_raw ) ) : [];
         $cache  = [];
-        $args   = array_map(
-            static function ( $t ) use ( &$cache ) {
+
+        $args = array_map(
+            static function ( string $t ) use ( &$cache ): mixed {
                 return anys_parse_dynamic_value( $t, $cache );
             },
             $tokens
@@ -115,14 +116,16 @@ final class Function_Type extends Base {
         $args = array_values(
             array_filter(
                 $args,
-                static function ( $a ) { return $a !== ''; }
+                static function ( mixed $a ): bool {
+                    return $a !== '';
+                }
             )
         );
 
         try {
             // Executes target function.
             $value = call_user_func_array( $function, $args );
-        } catch ( \Throwable ) {
+        } catch ( \Throwable $e ) {
             $value = '';
         }
 

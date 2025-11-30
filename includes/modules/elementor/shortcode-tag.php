@@ -20,7 +20,7 @@ final class Shortcode_Tag extends Tag {
      *
      * @return string
      */
-    public function get_name() {
+    public function get_name(): string {
         return 'anys-shortcode';
     }
 
@@ -29,7 +29,7 @@ final class Shortcode_Tag extends Tag {
      *
      * @return string
      */
-    public function get_title() {
+    public function get_title(): string {
         return esc_html__( 'Anything Shortcodes', 'anys' );
     }
 
@@ -38,7 +38,7 @@ final class Shortcode_Tag extends Tag {
      *
      * @return string
      */
-    public function get_group() {
+    public function get_group(): string {
         return 'anything-shortcodes';
     }
 
@@ -47,7 +47,7 @@ final class Shortcode_Tag extends Tag {
      *
      * @return array
      */
-    public function get_categories() {
+    public function get_categories(): array {
         return [ Dynamic_Tags_Module::TEXT_CATEGORY ];
     }
 
@@ -56,7 +56,7 @@ final class Shortcode_Tag extends Tag {
      *
      * @return void
      */
-    protected function register_controls() {
+    protected function register_controls(): void {
         $this->add_control(
             'anys_shortcode',
             [
@@ -74,7 +74,7 @@ final class Shortcode_Tag extends Tag {
      *
      * @return void
      */
-    public function render() {
+    public function render(): void {
         $raw = trim( (string) $this->get_settings( 'anys_shortcode' ) );
 
         // Skips empty or invalid shortcode.
